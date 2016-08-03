@@ -36,7 +36,7 @@ class RawTextCommand(CustomCommand):
                             help='Act on non-default folder'),
         parser.add_argument('--file',
                             help='Act on single file instead of full folder'),
-        parser.add_argument('--add', metavar='FILENAME_FRAGMENT',
+        parser.add_argument('--add', metavar='FILE',
                             help='Create new file'),
         parser.add_argument('--standardize', action='store_true',
                             help='Batch preparation for revision control'),
