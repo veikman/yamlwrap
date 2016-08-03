@@ -3,7 +3,12 @@ import logging
 from django.db import models
 from django.db import transaction
 
-import vedm.util.cook
+from . import util
+
+
+class MarkupField(models.TextField):
+    '''A text field expected to contain markup when first instantiated.'''
+    pass
 
 
 class Document(models.Model):
@@ -12,18 +17,18 @@ class Document(models.Model):
     title = models.CharField(max_length=100, unique=True)
     slug = models.SlugField()
 
+    subtitle = models.TextField()
+
+    summary = MarkupField()
+
+    ingress = MarkupField()
+    body = MarkupField()
+
     date_created = models.DateField()
     date_updated = models.DateField()
 
-    subtitle = models.TextField()
-    ingress = models.TextField()
-    body = models.TextField()
-
     parent_object = models.ForeignKey('self', related_name='children',
                                       null=True)
-
-    model_instance_name = ('document', 'documents')
-    cooked = (ingress, body)
 
     class Meta():
         ordering = ['date_created', 'title']
@@ -41,7 +46,7 @@ class Document(models.Model):
             for pk, item in by_pk.items():
                 sluggable = item.get('parent_object')
                 if sluggable:
-                    slug = vedm.util.cook.slugify(sluggable)
+                    slug = util.misc.slugify(sluggable)
                     try:
                         parent = cls.objects.get(slug=slug)
                     except cls.DoesNotExist:
@@ -56,8 +61,7 @@ class Document(models.Model):
     def create(cls, title='', parent_object=None, tags=None, **kwargs):
         '''Ignore parent object, because it may not be saved yet.'''
 
-        slug = vedm.util.cook.slugify(title)
-        vedm.util.cook.all_md(cls, kwargs)
+        slug = util.misc.slugify(title)
         new = cls.objects.create(title=title, slug=slug, **kwargs)
         if tags:
             new.tags.set(*tags)
