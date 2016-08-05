@@ -17,7 +17,7 @@ class Command(vedm.management.misc.LoggingLevelCommand):
         super().handle(**kwargs)
 
         try:
-            pass_instance = settings.MODEL_INSTANCE_AS_MARKUP_SUBJECT
+            pass_instance = settings.MARKUP_INSTANCE_AS_SUBJECT
         except AttributeError:
             pass_instance = True
 

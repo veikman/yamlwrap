@@ -1,7 +1,24 @@
 # -*- coding: utf-8 -*-
 '''Utilities for traversing Django apps down to text fields.'''
 
+import logging
+
 import django.apps
+from django.conf import settings
+
+
+def qualified_class_name(cls):
+    '''Return a string uniquely identifying a class (not cls.__qualname__).
+
+    Produce the same name that __str__ on a type object does, without the
+    "<class '...'>" wrapper.
+
+    This function is meant as part of a workaround for the difficulty of
+    importing all the classes into a Django settings module that should
+    be banned from treatment for markup.
+
+    '''
+    return cls.__module__ + "." + cls.__name__
 
 
 def site(function):
@@ -16,7 +33,21 @@ def app(function, app):
     The app here is expected to be packaged as if by django.apps.
 
     '''
+
     for model in app.values():
+
+        # Support a blacklist.
+        # Not skipping superclasses would create trouble with Django's
+        # handling of inheritance (through a OneToOne on the child class).
+        try:
+            blacklist = settings.MARKUP_MODEL_BLACKLIST
+        except AttributeError:
+            blacklist = {}
+
+        if model in blacklist or qualified_class_name(model) in blacklist:
+            logging.debug('Not traversing {}: Blacklisted.'.format(model))
+            continue
+
         function(model)
 
 

@@ -35,6 +35,8 @@ class Document(models.Model):
 
     @classmethod
     def create_en_masse(cls, raws):
+        logging.debug('Instantiating {} en masse.'.format(cls))
+
         with transaction.atomic():
             by_pk = dict()
 
