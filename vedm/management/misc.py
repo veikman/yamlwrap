@@ -78,6 +78,7 @@ class RawTextCommand(LoggingLevelCommand):
         pass
 
     def handle(self, *args, **kwargs):
+        # Make full arguments available to arbitrary overrides.
         self._args = kwargs
         super().handle(*args, **kwargs)
         self._handle(**kwargs)

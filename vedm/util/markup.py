@@ -6,9 +6,14 @@ The site-internal markup supported here is based on Ovid.
 '''
 
 import logging
+import os
+
+import django.conf
 
 import ovid
 import markdown
+
+from . import misc
 
 
 ###########
@@ -25,6 +30,73 @@ Inline = ovid.inspecting.SignatureShorthand
 # An HTML comment after the markup is allowed, but will be destroyed.
 Paragraph = Inline.variant_class(lead_in='<p>{p{',
                                  lead_out='}p}(?: ?<!--.*?-->)?</p>')
+
+
+#########################
+# REPLACEMENT FUNCTIONS #
+#########################
+
+# Generic internal markup.
+
+
+@Inline.register
+def br(subject=None):
+    '''A line break.
+
+    This is a workaround for the way that pyaml.dump interacts with
+    lines in YAML that end with Markdown's soft break ("  ").
+
+    The presence of any line terminated with a space provokes pyaml
+    to choose a flow-styled scalar representation even when pyaml.dump
+    is explicitly set to use the '|' block style. The result makes
+    affected documents far harder to edit.
+
+    '''
+    return '<br />'
+
+
+@Inline.register
+def media(path_fragment, subject=None, label=None, transclude=None):
+    if not label:
+        label = path_fragment
+
+    if transclude:
+        # Produce the full contents of e.g. an SVG file. No label.
+        filepath = os.path.join(django.conf.settings.MEDIA_ROOT,
+                                path_fragment)
+        try:
+            with open(filepath, mode='r', encoding='utf-8') as f:
+                repl = f.read()
+        except UnicodeDecodeError:
+            logging.error('Failed to read Unicode from {}.'.format(filepath))
+            raise
+    else:
+        # Produce a link.
+        root = django.conf.settings.MEDIA_URL
+        href = root + path_fragment
+        repl = '<a href="{}">{}</a>'.format(href, label)
+
+    return repl
+
+
+@Inline.register
+def static(path_fragment, subject=None, label=None):
+    if not label:
+        label = path_fragment
+
+    # Produce a link.
+    root = django.conf.settings.STATIC_URL
+    href = root + path_fragment
+    repl = '<a href="{}">{}</a>'.format(href, label)
+
+    return repl
+
+
+@Inline.register
+def table_of_contents(subject=None, heading='Contents'):
+    '''Produce Markdown for a TOC with a heading that won't appear in it.'''
+    return '<h2 id="{s}">{h}</h2>\n[TOC]'.format(s=misc.slugify(heading),
+                                                 h=heading)
 
 
 #######################
