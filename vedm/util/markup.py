@@ -58,9 +58,15 @@ def get_fields(model, classes):
 
 
 def internal_on_string(raw, **kwargs):
-    '''Modify a string (e.g. text field content) based on internal markup.'''
+    '''Modify a string (e.g. text field content) based on internal markup.
+
+    This will only be fully effective when it happens after Markdown has
+    been resolved, due to the functioning of Paragraph.
+
+    '''
     paragraph = Paragraph.collective_sub(raw, **kwargs)
-    return Inline.collective_sub(paragraph, **kwargs)
+    inline = Inline.collective_sub(paragraph, **kwargs)
+    return inline
 
 
 def markdown_on_string(raw):
@@ -72,3 +78,18 @@ def markdown_on_string(raw):
     extensions = ['markdown.extensions.footnotes',
                   'markdown.extensions.toc']
     return markdown.markdown(raw, extensions=extensions)
+
+
+def all_on_string(string, **kwargs):
+    '''Resolve all markup in passed string.
+
+    The order of operations here is intended for inline internal
+    markup to be able to produce new Markdown, and for the resolution
+    of Markdown to be able to produce the correct triggering pattern
+    for internal paragraph markup.
+
+    '''
+    string = Inline.collective_sub(string, **kwargs)
+    string = markdown_on_string(string)
+    string = Paragraph.collective_sub(string, **kwargs)
+    return string

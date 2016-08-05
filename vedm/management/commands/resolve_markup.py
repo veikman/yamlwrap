@@ -23,16 +23,16 @@ class Command(vedm.management.misc.LoggingLevelCommand):
 
         field_classes = (vedm.models.MarkupField,)
 
-        def treat_field(instance, raw):
-            moist = vedm.util.file.unwrap_paragraphs(raw)
+        def treat_field(instance, string):
+            '''Manipulate a string, which is the content of a text field.'''
+            string = vedm.util.file.unwrap_paragraphs(string)
 
             kwargs = dict()
             if pass_instance:
                 kwargs = dict(subject=instance)
 
-            tepid = vedm.util.markup.internal_on_string(moist, **kwargs)
-            cooked = vedm.util.markup.markdown_on_string(tepid)
-            return cooked
+            string = vedm.util.markup.all_on_string(string, **kwargs)
+            return string
 
         def treat_model(model):
             fields = vedm.util.markup.get_fields(model, field_classes)
