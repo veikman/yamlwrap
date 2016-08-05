@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
-'''Standardization of modification to management commands.'''
+'''Standardized management command base classes.
+
+Author: Viktor Eikman <viktor.eikman@gmail.com>
+
+'''
 
 
+import datetime
 import logging
 import os
 import subprocess
@@ -9,6 +14,8 @@ import re
 import string
 
 import django.core.management.base
+
+import yaml
 
 import vedm.util.file as uf
 
@@ -21,19 +28,13 @@ class LoggingLevelCommand(django.core.management.base.BaseCommand):
         logging.basicConfig(level=10 * (4 - kwargs['verbosity']))
 
 
-class RawTextCommand(LoggingLevelCommand):
-    '''A command that edits raw text (YAML) document files.'''
-
-    help = 'Edit raw text'
+class _RawTextCommand(LoggingLevelCommand):
+    '''Abstract base class for YAML processors.'''
 
     _default_folder = None
     _default_file = None
     _file_prefix = None
-    _model = None
-    _filename_character_whitelist = string.ascii_letters + string.digits
-    _can_describe = False
-    _can_update = False
-    _takes_subject = True
+    _file_ending = '.yaml'
 
     def add_arguments(self, parser):
         selection = parser.add_mutually_exclusive_group()
@@ -42,6 +43,58 @@ class RawTextCommand(LoggingLevelCommand):
         selection.add_argument('-f', '--select-file',
                                help='Act on single document'),
         self._add_selection_arguments(selection)
+
+    def _add_selection_arguments(self, group):
+        pass
+
+    def handle(self, *args, **kwargs):
+        '''An override to make the full arguments available to overrides.
+
+        Inheritors can't simply call super() for this effect without
+        bundling together all of the keyword arguments manually.
+
+        '''
+        self._args = kwargs
+        super().handle(*args, **kwargs)
+        self._handle(**kwargs)
+
+    def _handle(self, **kwargs):
+        raise NotImplementedError()
+
+    def _get_files(self, folder=None, file=None, **kwargs):
+        '''Find YAML documents to work on.'''
+        folder = folder or self._default_folder
+        file = file or self._default_file
+        assert folder or file
+        return uf.find_files(folder, single_file=file,
+                             identifier=self._file_identifier, **kwargs)
+
+    def _file_identifier(self, filename):
+        '''A Boolean for whether or not a found file is relevant.'''
+        basename = os.path.basename(filename)
+        if self._file_prefix:
+            if not basename.startswith(self._file_prefix):
+                return False
+        if self._file_ending:
+            if not basename.endswith(self._file_ending):
+                return False
+        return True
+
+
+class RawTextEditingCommand(_RawTextCommand):
+    '''A command that edits raw text (YAML) document files.'''
+
+    help = 'Edit raw text'
+
+    _model = None
+    _can_describe = False
+    _can_update = False
+    _takes_subject = True
+
+    _filename_character_whitelist = string.ascii_letters + string.digits
+
+    def add_arguments(self, parser):
+        super().add_arguments(parser)
 
         action = parser.add_mutually_exclusive_group()
         action.add_argument('--template', action='store_true',
@@ -71,17 +124,8 @@ class RawTextCommand(LoggingLevelCommand):
                             help='Join long paragraphs into single lines')
         self._add_action_arguments(action)
 
-    def _add_selection_arguments(self, group):
-        pass
-
     def _add_action_arguments(self, group):
         pass
-
-    def handle(self, *args, **kwargs):
-        # Make full arguments available to arbitrary overrides.
-        self._args = kwargs
-        super().handle(*args, **kwargs)
-        self._handle(**kwargs)
 
     def _handle(self, select_folder=None, select_file=None,
                 template=None, describe=None, update=None,
@@ -89,8 +133,11 @@ class RawTextCommand(LoggingLevelCommand):
         filepath = select_file or self._default_file
 
         if filepath:
-            with open(filepath, mode='r', encoding='utf-8') as f:
-                eof = sum(1 for line in f) + 1
+            if os.path.exists(filepath):
+                with open(filepath, mode='r', encoding='utf-8') as f:
+                    eof = sum(1 for line in f) + 1
+            else:
+                eof = 1
 
         if template:
             if not filepath:
@@ -165,7 +212,7 @@ class RawTextCommand(LoggingLevelCommand):
     def _transform(self, folder, file, **kwargs):
         '''Transform YAML documents for editing or source control.'''
 
-        for file in self._get_files(folder, file):
+        for file in self._get_files(folder=folder, file=file):
             with open(file, mode='r', encoding='utf-8') as f:
                 old_yaml = f.read()
 
@@ -173,19 +220,6 @@ class RawTextCommand(LoggingLevelCommand):
                                     arbitrary=self._data_manipulation,
                                     **kwargs)
             self._write_spec(file, new_yaml)
-
-    def _get_files(self, folder, file, **kwargs):
-        '''Find YAML documents to work on.'''
-
-        def identifier(filename):
-            basename = os.path.basename(filename)
-            if self._file_prefix:
-                if not basename.startswith(self._file_prefix):
-                    return False
-            return True
-
-        return uf.find_files(folder or self._default_folder,
-                             identifier=identifier, single_file=file, **kwargs)
 
     def _write_spec(self, filepath, new_yaml, mode='w'):
         if new_yaml:
@@ -204,3 +238,43 @@ class RawTextCommand(LoggingLevelCommand):
         filename = filename.format(re.sub(blacklist, '', filename))
         folder = folder_override or folder or self._default_folder
         return os.path.join(folder, filename)
+
+
+class RawTextRefinementCommand(_RawTextCommand):
+    help = 'Create database object(s) from YAML file(s)'
+
+    def add_arguments(self, parser):
+        super().add_arguments(parser)
+        parser.add_argument('--additive', action='store_true',
+                            help='Do not clear relevant table(s) first'),
+
+    def _handle(self, *args, additive=None, **kwargs):
+        if not additive:
+            self._clear_database()
+
+        self._create(**kwargs)
+
+    def _clear_database(self):
+        self._model.objects.all().delete()
+
+    def _create(self, select_folder=None, select_file=None, **kwargs):
+        files = tuple(self._get_files(folder=select_folder, file=select_file))
+        assert files
+        self._model.create_en_masse(tuple(map(self._parse_file, files)))
+
+    def _parse_file(self, filepath):
+        logging.debug('Parsing {}.'.format(filepath))
+        with open(filepath, mode='r', encoding='utf-8') as f:
+            return yaml.load(f.read())
+
+
+class DocumentRefinementCommand(RawTextRefinementCommand):
+    def _parse_file(self, filepath):
+        data = super()._parse_file(filepath)
+
+        if 'date_updated' not in data:
+            mtime = os.path.getmtime(filepath)
+            date_updated = datetime.date.fromtimestamp(mtime)
+            data['date_updated'] = date_updated
+
+        return data

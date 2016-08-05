@@ -7,7 +7,7 @@ from setuptools import find_packages, setup
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(name='vedm',
-      version='0.2.1',
+      version='0.3.0',
       author='Viktor Eikman',
       author_email='viktor@eikman.se',
       description='Reusable Django miscellania',

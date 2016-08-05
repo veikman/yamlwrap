@@ -98,6 +98,7 @@ def find_files(root_folder, identifier=lambda _: True, single_file=None):
         return
 
     for dirpath, _, filenames in os.walk(root_folder):
+        logging.debug('Searching for files in {}.'.format(dirpath))
         for f in filenames:
             if identifier(f):
                 yield os.path.join(dirpath, f)

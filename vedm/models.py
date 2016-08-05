@@ -1,3 +1,9 @@
+'''Models and related generic code for text-based databases.
+
+Author: Viktor Eikman <viktor.eikman@gmail.com>
+
+'''
+
 import logging
 
 from django.db import models
@@ -11,27 +17,8 @@ class MarkupField(models.TextField):
     pass
 
 
-class Document(models.Model):
-    '''A general document model.'''
-
-    title = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField()
-
-    subtitle = models.TextField()
-
-    summary = MarkupField()
-
-    ingress = MarkupField()
-    body = MarkupField()
-
-    date_created = models.DateField()
-    date_updated = models.DateField()
-
-    parent_object = models.ForeignKey('self', related_name='children',
-                                      null=True)
-
-    class Meta():
-        ordering = ['date_created', 'title']
+class UploadableMixin():
+    '''A mix-in for making Django models text-based.'''
 
     @classmethod
     def create_en_masse(cls, raws):
@@ -68,3 +55,26 @@ class Document(models.Model):
         if tags:
             new.tags.set(*tags)
         return new
+
+
+class Document(models.Model, UploadableMixin):
+    '''A general document model.'''
+
+    title = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField()
+
+    subtitle = models.TextField()
+
+    summary = MarkupField()
+
+    ingress = MarkupField()
+    body = MarkupField()
+
+    date_created = models.DateField()
+    date_updated = models.DateField()
+
+    parent_object = models.ForeignKey('self', related_name='children',
+                                      null=True)
+
+    class Meta():
+        ordering = ['date_created', 'title']
