@@ -116,7 +116,7 @@ class RawTextEditingCommand(_RawTextCommand):
                 action.add_argument('-u', '--update', action='store_true',
                                     help=s)
 
-        action.add_argument('--standardize', action='store_true',
+        action.add_argument('-s', '--standardize', action='store_true',
                             help='Batch preparation for revision control'),
         action.add_argument('--wrap', action='store_true',
                             help='Split long paragraphs for readability'),

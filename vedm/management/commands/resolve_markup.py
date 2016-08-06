@@ -10,7 +10,7 @@ import vedm
 
 
 class Command(vedm.management.misc.LoggingLevelCommand):
-    help = 'Resolves all markup in text fields into HTML.'
+    help = 'Resolves all markup in special text fields into HTML.'
 
     @transaction.atomic
     def handle(self, *args, **kwargs):

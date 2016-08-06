@@ -34,7 +34,20 @@ def app(function, app):
 
     '''
 
-    for model in app.values():
+    # Support explicit ordering.
+    try:
+        order = settings.MARKUP_MODEL_ORDER
+    except AttributeError:
+        order = ()
+
+    def key(model):
+        try:
+            return order.index(model)
+        except ValueError:
+            # Not listed. Treat it early.
+            return -1
+
+    for model in sorted(app.values(), key=key):
 
         # Support a blacklist.
         # Not skipping superclasses would create trouble with Django's
