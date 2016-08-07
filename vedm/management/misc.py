@@ -97,8 +97,8 @@ class RawTextEditingCommand(_RawTextCommand):
         super().add_arguments(parser)
 
         action = parser.add_mutually_exclusive_group()
-        action.add_argument('--template', action='store_true',
-                            help='Add a template')
+        action.add_argument('-t', '--template', action='store_true',
+                            help='Add a template for a new data object')
 
         if self._can_describe:
             s = 'Create new document about subject'
