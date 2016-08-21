@@ -104,6 +104,29 @@ class Wrapping(TestCase):
         no_wrap = ('a a a a a <b>a a</b> a a a a a')
         self._rewrap(wrapped, no_wrap, width=10)
 
+    def test_quote_block_oneparagraph(self):
+        wrapped = ('a a\n\n> b\nb\n\nc c')
+        no_wrap = ('a a\n\n> b b\n\nc c')
+        self._rewrap(wrapped, no_wrap)
+
+    def test_quote_block_multiparagraph(self):
+        wrapped = ('a a\n'
+                   '\n'
+                   '> b b\n'
+                   'b\n'
+                   '>\n'
+                   '> b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '> b b b\n'
+                   '>\n'
+                   '> b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=5)
+
     def test_markup(self):
         wrapped = ('{{mark|Aa a|param=Bb\nb}}\n\nCc c.')
         no_wrap = ('{{mark|Aa a|param=Bb b}}\n\nCc c.')

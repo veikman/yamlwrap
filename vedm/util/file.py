@@ -51,6 +51,10 @@ _PARAGRAPH = re.compile(r'''
 \n?              # An initial blank line will be respected.
 |
 \n\n             # Option 3: The normal case: A Markdown paragraph break.
+|
+\n(?=> .)        # Option 4: Markdown quoted paragraph beginning with "> ".
+|
+\n(?=>\n)        # Option 4: Empty line inside Markdown quote block.
 )                # End lead-in.
 (                # Begin paragraph contents. Group 3.
 (?:              # Begin unnamed single-character subgroup.
@@ -65,17 +69,19 @@ _PARAGRAPH = re.compile(r'''
 
 # Identify a line break likely to have been introduced by automatic wrapping.
 _WRAP_BREAK = re.compile(r'''
-(?<=[^>\n ])     # Lead-in. Any character but a ">" or a newline or a space.
+(?<=[^>\n ])     # Lead-in. A positive lookbehind assertion.
+                 #   Any character but a ">" or a newline or a space.
                  #   Spaces are used in "  " soft break notation.
-                 #   Ideally it'd be double-space, but lookbehind is fixed.
+                 #   Ideally it'd be double space, but lookbehind is fixed.
 ((>)?)           # Groups 1 and 2. A possible ">".
-\n               # The focal point.
+\n               # The focal line break.
 (?(2)(?!\s*<))   # If ">" ended the first line, and there's a "<" on the
-                 #   next line (with possible whitespace in between),
+                 #   next line (with only whitespace allowed in between),
                  #   take that to mean we're inside an HTML block, such
                  #   as a table. That would mean the focal break was not
                  #   created by wrappping, so do not match.
-(?=.)            # Always require some content on the next line.
+(?!>)            # Do not match inside quote blocks.
+(?=.)            # Require some content on the following line.
 ''', flags=re.VERBOSE)
 
 
