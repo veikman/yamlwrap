@@ -64,15 +64,15 @@ def app(function, app):
         function(model)
 
 
-def model(function, model):
+def model(function, model, fields):
     '''Apply function to each instance of passed model.'''
     for instance in model.objects.all():
-        function(instance)
+        function(instance, fields)
 
 
-def instance(function, instance, fields):
+def instance(function, instance, fields, **kwargs):
     '''Apply function to selected fields on passed instance of a model.'''
     for field in fields:
         old = getattr(instance, field.name)
-        new = function(instance, old)
+        new = function(instance, old, **kwargs)
         setattr(instance, field.name, new)

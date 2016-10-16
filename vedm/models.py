@@ -25,21 +25,45 @@ class UploadableMixin():
     def create_en_masse(cls, raws):
         '''Create a mass of objects from raw data out of text files.
 
-        This is only complicated because hierarchical relationships between
-        objects are held back until all objects have been registered. This
-        feature requires the field pointing to a parent to be named
-        "parent_object", for the model to have a "slug" field, and for
-        references to parents to be stored in text as strings that, when
-        slugified, correspond to genuine parent slugs.
+        Hierarchical relationships between objects are held over until all
+        objects have been registered.
 
         '''
 
         logging.debug('Instantiating {} en masse.'.format(cls))
+        cls._finishing(cls._instantiate_en_masse(raws))
 
+    @classmethod
+    def _instantiate_en_masse(cls, raws):
+        '''Basic object instantiation.'''
         by_pk = dict()
         for raw_data, instance in cls._iterate_over_raw_data(raws):
             by_pk[instance.pk] = raw_data
 
+        return by_pk
+
+    @classmethod
+    def _iterate_over_raw_data(cls, raws):
+        '''Assume each object in the raws describes one instance.'''
+        for item in raws:
+            new = cls.create(**item)
+            yield item, new
+
+    @classmethod
+    def _finishing(cls, by_pk):
+        '''Add finishing touches after mass instantiation.
+
+        Take a mapping of model instance primary keys to raw data items.
+
+        This default implementation notes hierarchical relationships
+        between parent and child objects. It expects:
+
+        * A field pointing to a parent object, named "parent_object".
+        * A "slug" field.
+        * For references to parents to be stored in text as strings that, when
+          slugified, correspond to genuine parent slugs.
+
+        '''
         # Add parents, which we presume are now saved.
         for pk, item in by_pk.items():
             sluggable = item.get('parent_object')
@@ -59,13 +83,6 @@ class UploadableMixin():
                     if not child.parent_relationship:
                         s = '"{}" has no relationship to its stated parent.'
                         logging.error(s.format(child))
-
-    @classmethod
-    def _iterate_over_raw_data(cls, raws):
-        '''Assume each object in the raws describes one instance.'''
-        for item in raws:
-            new = cls.create(**item)
-            yield item, new
 
     @classmethod
     def create(cls, title='', parent_object=None, tags=None, **kwargs):

@@ -28,12 +28,12 @@ class Command(vedm.management.misc.LoggingLevelCommand):
     def treat_model(self, model):
         fields = vedm.util.markup.get_fields(model, self.get_field_classes())
 
-        def treat_instance(instance):
-            vedm.util.traverse.instance(self.treat_field, instance, fields)
-            instance.save()
-
         if fields:
-            vedm.util.traverse.model(treat_instance, model)
+            vedm.util.traverse.model(self.treat_instance, model, fields)
+
+    def treat_instance(self, instance, fields):
+        vedm.util.traverse.instance(self.treat_field, instance, fields)
+        instance.save()
 
     def treat_field(self, instance, string):
         '''Manipulate a string, which is the content of a text field.'''
