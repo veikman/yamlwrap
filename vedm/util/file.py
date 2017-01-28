@@ -28,7 +28,7 @@ import yaml
 
 import pyaml
 
-from . import misc
+from vedm.util import misc
 
 
 #############

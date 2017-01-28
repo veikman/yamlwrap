@@ -3,8 +3,8 @@
 '''A generic management command.'''
 
 
-from django.db import transaction
 from django.conf import settings
+from django.db import transaction
 
 import vedm
 

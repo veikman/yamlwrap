@@ -9,9 +9,9 @@ Author: Viktor Eikman <viktor.eikman@gmail.com>
 import datetime
 import logging
 import os
-import subprocess
 import re
 import string
+import subprocess
 
 import django.core.management.base
 
