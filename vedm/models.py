@@ -130,7 +130,7 @@ class Document(models.Model, UploadableMixin):
     date_updated = models.DateField()
 
     parent_object = models.ForeignKey('self', related_name='children',
-                                      null=True)
+                                      null=True, on_delete=models.CASCADE)
 
     class Meta():
         ordering = ['date_created', 'title']
