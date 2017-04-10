@@ -129,6 +129,9 @@ class Document(models.Model, UploadableMixin):
     date_created = models.DateField()
     date_updated = models.DateField()
 
+    # Paths to any JavaScript files needed to present the content.
+    scripts = models.TextField()
+
     parent_object = models.ForeignKey('self', related_name='children',
                                       null=True, on_delete=models.CASCADE)
 
