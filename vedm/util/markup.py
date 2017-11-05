@@ -7,6 +7,7 @@ The site-internal markup supported here is based on Ovid.
 
 import logging
 import os
+import re
 
 import django.conf
 
@@ -22,8 +23,12 @@ from . import misc
 
 # Registries for site-internal markup:
 
+# Multiline support here should be considered unstable. It may be expensive
+# and works poorly with functions that only generate e.g. <span>, without
+# taking paragraphs into account and duplicating the span across each.
+Inline = ovid.inspecting.SignatureShorthand.variant_class(new_registry=False,
+                                                          flags=re.DOTALL)
 
-Inline = ovid.inspecting.SignatureShorthand
 
 # A variant follows that will replace Markdown-generated HTML paragraph
 # markup around its special delimiters.

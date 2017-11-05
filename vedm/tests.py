@@ -6,7 +6,7 @@ import django.template.defaultfilters
 import pyaml
 
 import vedm
-import vedm.util as util
+from vedm import util
 
 
 class Models(TestCase):
@@ -243,6 +243,20 @@ class CookingInternalMarkup(TestCase):
                '<p>i</p>\n')
 
         self.assertEqual(ref, util.markup.internal_on_string(s))
+
+    def test_multiline(self):
+        def mask(s):
+            return s
+
+        vedm.util.markup.Inline(mask)
+
+        s0 = """Uh {{mask|huh.
+
+        Nu}} uh."""
+        s1 = """Uh huh.
+
+        Nu uh."""
+        self.assertEqual(vedm.util.markup.Inline.collective_sub(s0), s1)
 
 
 class CookingStructure(TestCase):
