@@ -67,22 +67,30 @@ class UploadableMixin():
         # Add parents, which we presume are now saved.
         for pk, item in by_pk.items():
             sluggable = item.get('parent_object')
-            if sluggable:
-                slug = util.misc.slugify(sluggable)
-                try:
-                    parent = cls.objects.get(slug=slug)
-                except cls.DoesNotExist:
-                    s = 'Stated parent "{}" not found.'
-                    logging.error(s.format(sluggable))
-                    continue
-                child = cls.objects.get(pk=pk)
-                child.parent_object = parent
-                child.save()
+            if not sluggable:
+                continue
 
-                if hasattr(child, 'parent_relationship'):
-                    if not child.parent_relationship:
-                        s = '"{}" has no relationship to its stated parent.'
-                        logging.error(s.format(child))
+            slug = util.misc.slugify(sluggable)
+            try:
+                parent = cls.objects.get(slug=slug)
+            except cls.DoesNotExist:
+                s = 'Stated parent “{}” not found.'
+                logging.error(s.format(sluggable))
+                continue
+
+            if parent.pk == pk:
+                s = 'Item is its own parent: “{}”.'
+                logging.error(s.format(sluggable))
+                continue
+
+            child = cls.objects.get(pk=pk)
+            child.parent_object = parent
+            child.save()
+
+            if hasattr(child, 'parent_relationship'):
+                if not child.parent_relationship:
+                    s = '“{}” has no relationship to its stated parent.'
+                    logging.error(s.format(child))
 
     @classmethod
     def create(cls, title='', parent_object=None, tags=None, **kwargs):
