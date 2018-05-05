@@ -24,8 +24,8 @@ import logging
 import os
 import re
 import textwrap
-import yaml
 
+import yaml  # PyPI: PyYAML.
 import pyaml
 
 from vedm.util import misc
@@ -193,7 +193,7 @@ def wrap_paragraphs(string, width=None):
 
     Useful for terminal reading, manual editing and neat re-dumping with
     pyaml. Words longer than pyaml's heuristic threshold will cause
-    problems with dumping, because they are exempt from wrapping.
+    problems with dumping because they are exempt from wrapping.
 
     '''
     if width:  # Custom TextWrapper instances don't take keyword arguments.

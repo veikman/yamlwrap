@@ -3,7 +3,6 @@
 from django.test import TestCase
 from django.core.management import call_command
 import django.template.defaultfilters
-import pyaml
 
 import vedm
 from vedm import util
@@ -152,22 +151,48 @@ class Wrapping(TestCase):
 
 
 class PrettyYAML(TestCase):
-    # Tests of the third-party pyaml module itself, just for clarification.
+    # Tests mainly of the third-party pyaml module itself for clarification.
 
     def test_trivial(self):
         data = {'key': 'a'}
         ref = 'key: a\n'
-        self.assertEqual(ref, pyaml.dump(data))
+        self.assertEqual(ref, util.file.dump(data))
 
     def test_provoke_pipe(self):
         data = {'key': 'a\na'}
         ref = 'key: |-\n  a\n  a\n'
-        self.assertEqual(ref, pyaml.dump(data))
+        self.assertEqual(ref, util.file.dump(data))
 
     def test_failure_to_provoke_pipe_with_terminating_space(self):
         data = {'key': 'a \na'}
         ref = 'key: |-\n  a \n  a\n'
-        self.assertNotEqual(ref, pyaml.dump(data))
+        self.assertNotEqual(ref, util.file.dump(data))
+
+    def test_4byte_unicode(self):
+        """Check that a 4-byte Unicode character isn’t encoded in hex.
+
+        pyaml should take care of this automatically, whereas PyYAML will not
+        do so by default.
+
+        """
+        s = '🙄'
+        ref = '🙄\n'
+        self.assertEqual(ref, util.file.dump(s))
+
+    def test_4byte_unicode_with_pipe(self):
+        """Check that a 4-byte Unicode character isn’t encoded in hex.
+
+        Advanced case, with a newline.
+
+        pyaml should take care of this automatically, whereas PyYAML will not
+        do so by default. In 2018, there was some apparent difference between
+        the PyPI and Debian editions of pyaml 17.12.1; the PyPI edition failed
+        this test.
+
+        """
+        s = '🧐\na'
+        ref = '🧐\na\n'
+        self.assertEqual(ref, util.file.dump(s))
 
 
 class CookingMarkdown(TestCase):

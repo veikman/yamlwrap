@@ -13,9 +13,9 @@ import re
 import string
 import subprocess
 
-import django.core.management.base
+import yaml  # PyPI: PyYAML.
 
-import yaml
+import django.core.management.base
 
 import vedm.util.file as uf
 
