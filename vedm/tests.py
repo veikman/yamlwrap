@@ -176,7 +176,7 @@ class PrettyYAML(TestCase):
 
         """
         s = '🙄'
-        ref = '🙄\n'
+        ref = '🙄\n...\n'
         self.assertEqual(ref, util.file.dump(s))
 
     def test_4byte_unicode_with_pipe(self):
@@ -187,11 +187,11 @@ class PrettyYAML(TestCase):
         pyaml should take care of this automatically, whereas PyYAML will not
         do so by default. In 2018, there was some apparent difference between
         the PyPI and Debian editions of pyaml 17.12.1; the PyPI edition failed
-        this test.
+        this test, behaving like PyYAML.
 
         """
         s = '🧐\na'
-        ref = '🧐\na\n'
+        ref = '|-\n  🧐\n  a\n'
         self.assertEqual(ref, util.file.dump(s))
 
 

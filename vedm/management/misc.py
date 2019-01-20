@@ -66,8 +66,12 @@ class _RawTextCommand(LoggingLevelCommand):
         folder = folder or self._default_folder
         file = file or self._default_file
         assert folder or file
-        return uf.find_files(folder, single_file=file,
-                             identifier=self._file_identifier, **kwargs)
+        files = tuple(uf.find_files(folder, single_file=file,
+                                    identifier=self._file_identifier,
+                                    **kwargs))
+        if not files:
+            logging.error('No eligible files.')
+        return files
 
     def _file_identifier(self, filename):
         '''A Boolean for whether or not a found file is relevant.'''
@@ -164,6 +168,8 @@ class RawTextEditingCommand(_RawTextCommand):
 
             subprocess.call(['gvim', filepath, '+{}'.format(line)])
         else:
+            if not wrap or unwrap or filepath:
+                logging.info('Transforming all without standardization.')
             self._transform(select_folder or self._default_folder, filepath,
                             unwrap=unwrap, wrap=wrap)
 
@@ -211,7 +217,6 @@ class RawTextEditingCommand(_RawTextCommand):
 
     def _transform(self, folder, file, **kwargs):
         '''Transform YAML documents for editing or source control.'''
-
         for file in self._get_files(folder=folder, file=file):
             with open(file, mode='r', encoding='utf-8') as f:
                 old_yaml = f.read()
