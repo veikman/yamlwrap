@@ -1,4 +1,6 @@
 dev*
-build
 *egg-info
+dist
+build
+*.whl
 __pycache__
