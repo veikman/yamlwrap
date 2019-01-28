@@ -13,8 +13,6 @@ import re
 import string
 import subprocess
 
-import yaml  # PyPI: PyYAML.
-
 import django.core.management.base
 
 import vedm.util.file as uf
@@ -269,8 +267,7 @@ class RawTextRefinementCommand(_RawTextCommand):
 
     def _parse_file(self, filepath):
         logging.debug('Parsing {}.'.format(filepath))
-        with open(filepath, mode='r', encoding='utf-8') as f:
-            return yaml.load(f.read())
+        return uf.load(filepath)
 
 
 class DocumentRefinementCommand(RawTextRefinementCommand):

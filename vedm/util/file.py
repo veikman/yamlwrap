@@ -84,6 +84,10 @@ _WRAP_BREAK = re.compile(r'''
 (?=.)            # Require some content on the following line.
 ''', flags=re.VERBOSE)
 
+# Unicode space ranges.
+_NONPRINTABLE = re.compile(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-'
+                           r'\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]')
+
 
 #######################
 # INTERFACE FUNCTIONS #
@@ -112,6 +116,20 @@ def find_files(root_folder, identifier=lambda _: True, single_file=None):
 
 def dump(data, **kwargs):
     return pyaml.dump(data, **kwargs)
+
+
+def load(filepath):
+    """Load contents of named file and parse as YAML.
+
+    The main job of this function is to work around the lack of support for
+    SMP Unicode characters in PyYaml 3.13. A future release of PyYaml may fix
+    this, and there are alternatives available which could take the place of
+    PyYaml in this back end.
+
+    """
+    yaml.reader.Reader.NON_PRINTABLE = _NONPRINTABLE
+    with open(filepath, mode='r', encoding='utf-8') as f:
+        return yaml.load(f.read())
 
 
 def transform(raw, model=None, order=True, unwrap=None, wrap=None, lint=None,
