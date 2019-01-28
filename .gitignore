@@ -1,6 +1,8 @@
 dev*
 *egg-info
-dist
 build
+dist
+deb_dist
 *.whl
+*.tar.gz
 __pycache__
