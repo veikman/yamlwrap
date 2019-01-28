@@ -14,5 +14,6 @@ setup(name='vedm',
       url='http://viktor.eikman.se',
       packages=['vedm', 'vedm.management', 'vedm.management.commands',
                 'vedm.migrations', 'vedm.util'],
+      install_requires=['markdown', 'Ovid', 'PyYaml', 'pyaml', 'unidecode'],
       include_package_data=True,
       )
