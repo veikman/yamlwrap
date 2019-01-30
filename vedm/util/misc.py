@@ -22,7 +22,7 @@ import unidecode
 
 def is_listlike(object_):
     '''True if object_ is an iterable container.'''
-    if (isinstance(object_, collections.Iterable) and
+    if (isinstance(object_, collections.abc.Iterable) and
             not isinstance(object_, str)):
         return True
     return False
@@ -30,7 +30,7 @@ def is_listlike(object_):
 
 def is_leaf_mapping(object_):
     '''True if object_ is a mapping and doesn't contain mappings.'''
-    if (isinstance(object_, collections.Mapping) and
+    if (isinstance(object_, collections.abc.Mapping) and
             not any(map(is_leaf_mapping, object_.values()))):
         return True
     return False

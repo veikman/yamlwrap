@@ -149,7 +149,7 @@ def transform(raw, model=None, order=True, unwrap=None, wrap=None, lint=None,
         container_functions.append(order_raw_asset_dict)
 
     # Sort top-level data.
-    if isinstance(data, collections.Mapping):
+    if isinstance(data, collections.abc.Mapping):
         for f in container_functions:
             data = f(model, data)
 
@@ -261,7 +261,7 @@ def order_raw_asset_dict(model, mapping):
 def _descend(object_, model, container_functions, string_functions, **kwargs):
     '''Walk down through mutable containers, applying functions.'''
 
-    if isinstance(object_, collections.Mapping):
+    if isinstance(object_, collections.abc.Mapping):
         for key, value in object_.items():
             if isinstance(value, str):
                 for f in string_functions:
@@ -275,7 +275,7 @@ def _descend(object_, model, container_functions, string_functions, **kwargs):
 
     elif misc.is_listlike(object_):
         for i, content in enumerate(object_):
-            if isinstance(content, collections.Mapping):
+            if isinstance(content, collections.abc.Mapping):
                 for f in container_functions:
                     object_[i] = f(model, object_[i])
 
