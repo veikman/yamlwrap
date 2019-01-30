@@ -207,6 +207,12 @@ class RawTextEditingCommand(_RawTextCommand):
         self._write_spec(filepath, uf.dump(new_yaml))
 
     def _data_from_subject(self, subject, old_yaml=None):
+        '''Update a specification (description) from its actual subject.
+
+        Take an optional unparsed YAML text string representing a previous
+        version of the specification.
+
+        '''
         raise NotImplementedError
 
     def _data_manipulation(self, data):
@@ -267,7 +273,8 @@ class RawTextRefinementCommand(_RawTextCommand):
 
     def _parse_file(self, filepath):
         logging.debug('Parsing {}.'.format(filepath))
-        return uf.load(filepath)
+        with open(filepath, mode='r') as f:
+            uf.load(f.read())
 
 
 class DocumentRefinementCommand(RawTextRefinementCommand):

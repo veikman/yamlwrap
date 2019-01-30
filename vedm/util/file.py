@@ -118,8 +118,8 @@ def dump(data, **kwargs):
     return pyaml.dump(data, **kwargs)
 
 
-def load(filepath):
-    """Load contents of named file and parse as YAML.
+def load(data):
+    """Parse passed string as YAML.
 
     The main job of this function is to work around the lack of support for
     SMP Unicode characters in PyYaml 3.13. A future release of PyYaml may fix
@@ -128,8 +128,7 @@ def load(filepath):
 
     """
     yaml.reader.Reader.NON_PRINTABLE = _NONPRINTABLE
-    with open(filepath, mode='r', encoding='utf-8') as f:
-        return yaml.load(f.read())
+    return yaml.load(data)
 
 
 def transform(raw, model=None, order=True, unwrap=None, wrap=None, lint=None,
@@ -139,7 +138,7 @@ def transform(raw, model=None, order=True, unwrap=None, wrap=None, lint=None,
     Return a string if changes are suggested, else return None.
 
     '''
-    data = yaml.load(raw)
+    data = load(raw)
 
     dump_args = dict(width=160)
     if unwrap and not wrap:
@@ -214,10 +213,9 @@ def wrap_paragraphs(string, width=None):
     problems with dumping because they are exempt from wrapping.
 
     '''
+    _WRAPPER.width = 70
     if width:  # Custom TextWrapper instances don't take keyword arguments.
         _WRAPPER.width = width
-    else:
-        _WRAPPER.width = 70
 
     return re.sub(_PARAGRAPH, _wrap, string)
 
