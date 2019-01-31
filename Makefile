@@ -22,5 +22,8 @@ deb-install: deb-package
 clean:
 	-rm -rf *.whl
 	-rm -rf build
-	-rm dist/* && rmdir dist/
+	-rm dist/*
+	-rmdir dist/
+	-rm -rf deb_dist
+	-rm *tar.gz
 	-rm *.egg-info/* && rmdir *.egg-info/

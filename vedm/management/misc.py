@@ -273,8 +273,8 @@ class RawTextRefinementCommand(_RawTextCommand):
 
     def _parse_file(self, filepath):
         logging.debug('Parsing {}.'.format(filepath))
-        with open(filepath, mode='r') as f:
-            uf.load(f.read())
+        with open(filepath, mode='r', encoding='utf-8') as f:
+            return uf.load(f.read())
 
 
 class DocumentRefinementCommand(RawTextRefinementCommand):

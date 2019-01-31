@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from unittest import mock
+
 from django.test import TestCase
 from django.core.management import call_command
 import django.template.defaultfilters
 
-from vemd.models import MarkupField
+from vedm.models import MarkupField
 from vedm.models import Document
 from vedm.util.markup import Inline
 from vedm.util.markup import Paragraph
@@ -194,9 +196,17 @@ class PrettyYAML(TestCase):
         Advanced case, with a newline.
 
         pyaml should take care of this automatically, whereas PyYAML will not
-        do so by default. In 2018, there was some apparent difference between
-        the PyPI and Debian editions of pyaml 17.12.1; the PyPI edition failed
-        this test, behaving like PyYAML.
+        do so by default.
+
+        Historically, there have been several problems with this:
+
+        The Debian 9 and 10 edition of PyYAML 3.13 came with libyaml, a C back
+        end that behaved as expected by this test. However, installed from PyPI
+        without libyaml, 3.13 failed this test, implying some problem in the
+        libyaml-agnostic pyaml’s use of PyYAML’s internals or a bug in PyYAML.
+        PyYAML v4 added extended Unicode support which seems to solve the
+        problem even in the PyPI version, though as of 2019-01, v4 is not yet
+        released.
 
         """
         s = '🧐\na'
@@ -320,8 +330,22 @@ class CookingSite(TestCase):
                     date_created='2016-08-03',
                     date_updated='2016-08-04')
         doc = Document.create(**raws)
-        call_command('resolve_markup')
+
+        ref = '**Cove** is a city\nin Union County.\n'
+        self.assertEqual(ref, doc.body,
+                         msg='Text mutated in document creation.')
+
+        def replacement(callback, app):
+            callback(Document)
+
+        # Depending on the Django project wherein VEDM is tested,
+        # traverse.app may fail to include Document.
+        # This is the only reason for patching here.
+        with mock.patch('vedm.util.traverse.app', new=replacement):
+            call_command('resolve_markup')
+
         doc.refresh_from_db()
+
         ref = '<p><strong>Cove</strong> is a city in Union County.</p>'
         self.assertEqual(ref, doc.body)
 

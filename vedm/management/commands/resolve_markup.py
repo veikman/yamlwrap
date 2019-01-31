@@ -27,7 +27,6 @@ class Command(vedm.management.misc.LoggingLevelCommand):
 
     def treat_model(self, model):
         fields = vedm.util.markup.get_fields(model, self.get_field_classes())
-
         if fields:
             vedm.util.traverse.model(self.treat_instance, model, fields)
 
@@ -39,15 +38,14 @@ class Command(vedm.management.misc.LoggingLevelCommand):
         '''Manipulate a string, which is the content of a text field.'''
         string = vedm.util.file.unwrap_paragraphs(string)
 
-        kwargs = dict()
-
         try:
             pass_instance = settings.MARKUP_INSTANCE_AS_SUBJECT
         except AttributeError:
             pass_instance = True
 
+        kwargs = dict()
         if pass_instance:
-            kwargs = dict(subject=instance)
+            kwargs.update(subject=instance)
 
         string = vedm.util.markup.all_on_string(string, **kwargs)
         return string
