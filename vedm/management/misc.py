@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''Standardized management command base classes.
+"""Standardized management command base classes.
 
 Author: Viktor Eikman <viktor.eikman@gmail.com>
 
-'''
+"""
 
 
 import datetime
@@ -19,15 +19,15 @@ import vedm.util.file as uf
 
 
 class LoggingLevelCommand(django.core.management.base.BaseCommand):
-    '''A command that uses Django's verbosity for general logging.'''
+    """A command that uses Django's verbosity for general logging."""
 
     def handle(self, **kwargs):
-        '''Adapt Django's standard verbosity argument for general use.'''
+        """Adapt Django's standard verbosity argument for general use."""
         logging.basicConfig(level=10 * (4 - kwargs['verbosity']))
 
 
 class _RawTextCommand(LoggingLevelCommand):
-    '''Abstract base class for YAML processors.'''
+    """Abstract base class for YAML processors."""
 
     _default_folder = None
     _default_file = None
@@ -46,12 +46,12 @@ class _RawTextCommand(LoggingLevelCommand):
         pass
 
     def handle(self, *args, **kwargs):
-        '''An override to make the full arguments available to overrides.
+        """An override to make the full arguments available to overrides.
 
         Inheritors can't simply call super() for this effect without
         bundling together all of the keyword arguments manually.
 
-        '''
+        """
         self._args = kwargs
         super().handle(*args, **kwargs)
         self._handle(**kwargs)
@@ -60,7 +60,7 @@ class _RawTextCommand(LoggingLevelCommand):
         raise NotImplementedError()
 
     def _get_files(self, folder=None, file=None, **kwargs):
-        '''Find YAML documents to work on.'''
+        """Find YAML documents to work on."""
         folder = folder or self._default_folder
         file = file or self._default_file
         assert folder or file
@@ -72,7 +72,7 @@ class _RawTextCommand(LoggingLevelCommand):
         return files
 
     def _file_identifier(self, filename):
-        '''A Boolean for whether or not a found file is relevant.'''
+        """A Boolean for whether or not a found file is relevant."""
         basename = os.path.basename(filename)
         if self._file_prefix:
             if not basename.startswith(self._file_prefix):
@@ -84,7 +84,7 @@ class _RawTextCommand(LoggingLevelCommand):
 
 
 class RawTextEditingCommand(_RawTextCommand):
-    '''A command that edits raw text (YAML) document files.'''
+    """A command that edits raw text (YAML) document files."""
 
     help = 'Edit raw text'
 
@@ -172,11 +172,11 @@ class RawTextEditingCommand(_RawTextCommand):
                             unwrap=unwrap, wrap=wrap)
 
     def _should_open_editor(self):
-        '''Custom filtering for whether or not to edit manually. A stub.'''
+        """Custom filtering for whether or not to edit manually. A stub."""
         return True
 
     def _should_open_file_at_end(self, template):
-        '''Filter for whether or not to do manual editing from the bottom.'''
+        """Filter for whether or not to do manual editing from the bottom."""
         return bool(template)
 
     def _append_template(self, filepath, **kwargs):
@@ -187,7 +187,7 @@ class RawTextEditingCommand(_RawTextCommand):
         pass
 
     def _describe(self, subject, is_update, filepath):
-        '''Base a document on a subject.'''
+        """Base a document on a subject."""
 
         if is_update:
             if not os.path.exists(filepath):
@@ -207,20 +207,20 @@ class RawTextEditingCommand(_RawTextCommand):
         self._write_spec(filepath, uf.dump(new_yaml))
 
     def _data_from_subject(self, subject, old_yaml=None):
-        '''Update a specification (description) from its actual subject.
+        """Update a specification (description) from its actual subject.
 
         Take an optional unparsed YAML text string representing a previous
         version of the specification.
 
-        '''
+        """
         raise NotImplementedError
 
     def _data_manipulation(self, data):
-        '''General manipulation of data, e.g. from Internet searches.'''
+        """General manipulation of data, e.g. from Internet searches."""
         pass
 
     def _transform(self, folder, filepath, **kwargs):
-        '''Transform YAML documents for editing or source control.'''
+        """Transform YAML documents for editing or source control."""
         for filepath in self._get_files(folder=folder, file=filepath):
             with open(filepath, mode='r', encoding='utf-8') as f:
                 old_yaml = f.read()

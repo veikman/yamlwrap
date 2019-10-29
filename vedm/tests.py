@@ -202,7 +202,7 @@ class PrettyYAML(TestCase):
 
         Historically, there have been several problems with this:
 
-        The Debian 9 and 10 edition of PyYAML 3.13 came with libyaml, a C back
+        The Debian 9 and 10 editions of PyYAML 3.13 came with libyaml, a C back
         end that behaved as expected by this test. However, installed from PyPI
         without libyaml, 3.13 failed this test, implying some problem in the
         libyaml-agnostic pyaml’s use of PyYAML’s internals or a bug in PyYAML.

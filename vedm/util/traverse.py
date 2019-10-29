@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''Utilities for traversing Django apps down to text fields.'''
+"""Utilities for traversing Django apps down to text fields."""
 
 import logging
 
@@ -8,7 +8,7 @@ from django.conf import settings
 
 
 def qualified_class_name(cls):
-    '''Return a string uniquely identifying a class (not cls.__qualname__).
+    """Return a string uniquely identifying a class (not cls.__qualname__).
 
     Produce the same name that __str__ on a type object does, without the
     "<class '...'>" wrapper.
@@ -17,22 +17,22 @@ def qualified_class_name(cls):
     importing all the classes into a Django settings module that should
     be banned from treatment for markup.
 
-    '''
+    """
     return cls.__module__ + "." + cls.__name__
 
 
 def site(function):
-    '''Apply function to all apps on current site.'''
+    """Apply function to all apps on current site."""
     for app in django.apps.apps.all_models.values():
         function(app)
 
 
 def app(function, app):
-    '''Apply function to all models in app.
+    """Apply function to all models in app.
 
     The app here is expected to be packaged as if by django.apps.
 
-    '''
+    """
 
     # Support explicit ordering.
     try:
@@ -65,13 +65,13 @@ def app(function, app):
 
 
 def model(function, model, fields):
-    '''Apply function to each instance of passed model.'''
+    """Apply function to each instance of passed model."""
     for instance in model.objects.all():
         function(instance, fields)
 
 
 def instance(function, instance, fields, **kwargs):
-    '''Apply function to selected fields on passed instance of a model.'''
+    """Apply function to selected fields on passed instance of a model."""
     for field in fields:
         old = getattr(instance, field.name)
         new = function(instance, old, **kwargs)

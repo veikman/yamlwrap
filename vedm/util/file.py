@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''Functions for text files of serialized data.
+"""Functions for text files of serialized data.
 
 This module is concerned with the maintenance of text for use on Django sites:
 In particular, with the maintenance of text files formatted with YAML and open
@@ -10,7 +10,7 @@ to work around the fact that they avoid the desired '|' (literal) style for
 scalars (strings) with words longer than a suitable line length. This is
 particularly a problem when raw text records contain long URLs.
 
-'''
+"""
 
 
 ###########
@@ -41,7 +41,7 @@ from vedm.util import misc
 _WRAPPER = textwrap.TextWrapper(break_long_words=False, break_on_hyphens=False)
 
 # Identify a paragraph for some Markdown-like purposes.
-_PARAGRAPH = re.compile(r'''
+_PARAGRAPH = re.compile(r"""
 (                # Begin lead-in. This is group 1, just because
                  #   lookbehinds must have a fixed width, and we don't.
 (?:^|\n)         # Option 1: Single break for what looks like HTML.
@@ -65,10 +65,10 @@ _PARAGRAPH = re.compile(r'''
 (?!\n\n|\n?$))   # Non-HTML endings require a double break.
 .)+              # End and repeat unnamed single-character subgroup.
 )                # End paragraph contents.
-''', flags=re.VERBOSE)
+""", flags=re.VERBOSE)
 
 # Identify a line break likely to have been introduced by automatic wrapping.
-_WRAP_BREAK = re.compile(r'''
+_WRAP_BREAK = re.compile(r"""
 (?<=[^>\n ])     # Lead-in. A positive lookbehind assertion.
                  #   Any character but a ">" or a newline or a space.
                  #   Spaces are used in "  " soft break notation.
@@ -82,7 +82,7 @@ _WRAP_BREAK = re.compile(r'''
                  #   created by wrappping, so do not match.
 (?!>)            # Do not match inside quote blocks.
 (?=.)            # Require some content on the following line.
-''', flags=re.VERBOSE)
+""", flags=re.VERBOSE)
 
 # Unicode space ranges.
 _NONPRINTABLE = re.compile(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-'
@@ -95,13 +95,13 @@ _NONPRINTABLE = re.compile(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-'
 
 
 def find_files(root_folder, identifier=lambda _: True, single_file=None):
-    '''Generate relative paths of asset files with prefix, under a folder.
+    """Generate relative paths of asset files with prefix, under a folder.
 
     If a "single_file" argument is provided, it is assumed to be a relative
     path to a single file. This design is intended for ease of use with a
     CLI that takes both folder and file arguments.
 
-    '''
+    """
     if single_file:
         if identifier(single_file):
             yield single_file
@@ -133,11 +133,11 @@ def load(data):
 
 def transform(raw, model=None, order=True, unwrap=None, wrap=None, lint=None,
               arbitrary=None):
-    '''Modify a serialized YAML string if needed.
+    """Modify a serialized YAML string if needed.
 
     Return a string if changes are suggested, else return None.
 
-    '''
+    """
     data = load(raw)
 
     dump_args = dict(width=160)
@@ -178,7 +178,7 @@ def transform(raw, model=None, order=True, unwrap=None, wrap=None, lint=None,
 
 
 def paragraph_length_warning(string, threshold=1200):
-    '''A lint function for use with _descend().'''
+    """A lint function for use with _descend()."""
 
     for line in unwrap_paragraphs(string).split('\n'):
         if len(line) > threshold:
@@ -189,11 +189,11 @@ def paragraph_length_warning(string, threshold=1200):
 
 
 def unwrap_paragraphs(string):
-    '''A modifying function for use with _descend().
+    """A modifying function for use with _descend().
 
     Useful for Unix-style searching and batch processing.
 
-    '''
+    """
     try:
         return re.sub(_WRAP_BREAK, r'\1 ', string)
     except TypeError:
@@ -203,7 +203,7 @@ def unwrap_paragraphs(string):
 
 
 def wrap_paragraphs(string, width=None):
-    '''A modifying function for use with _descend().
+    """A modifying function for use with _descend().
 
     Use a custom regex to identify paragraphs, passing these to a
     lightly customized TextWrapper.
@@ -212,7 +212,7 @@ def wrap_paragraphs(string, width=None):
     pyaml. Words longer than pyaml's heuristic threshold will cause
     problems with dumping because they are exempt from wrapping.
 
-    '''
+    """
     _WRAPPER.width = 70
     if width:  # Custom TextWrapper instances don't take keyword arguments.
         _WRAPPER.width = width
@@ -221,7 +221,7 @@ def wrap_paragraphs(string, width=None):
 
 
 def order_raw_asset_dict(model, mapping):
-    '''A modifying function for use with _descend().
+    """A modifying function for use with _descend().
 
     Produce an ordered dictionary for replacement of a regular one.
 
@@ -232,7 +232,7 @@ def order_raw_asset_dict(model, mapping):
     The yaml module saves an OrderedDict as if it were a regular dict,
     but does respect its ordering, until it is loaded again.
 
-    '''
+    """
     ordered = collections.OrderedDict()
     if model:
         for f in (f.name for f in model._meta.fields):
@@ -259,7 +259,7 @@ def order_raw_asset_dict(model, mapping):
 
 
 def _descend(object_, model, container_functions, string_functions, **kwargs):
-    '''Walk down through mutable containers, applying functions.'''
+    """Walk down through mutable containers, applying functions."""
 
     if isinstance(object_, collections.abc.Mapping):
         for key, value in object_.items():
@@ -291,13 +291,13 @@ def _log_string_change(old, new):
 
 
 def _wrap(matchobject):
-    '''Wrap text in a found paragraph.
+    """Wrap text in a found paragraph.
 
     Protect Markdown's awkward soft-break notation from the wrapper
     object by passing only part of the paragraph to it. This effect
     can apparently not be achieved by disabling "drop_whitespace".
 
-    '''
+    """
     return ''.join((matchobject.group(1),
                     _WRAPPER.fill(matchobject.group(3)),
                     re.search(r'((  )?)$', matchobject.group(3)).group(1)))

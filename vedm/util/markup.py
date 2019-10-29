@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''Collected utilities for registration and use of text markup.
+"""Collected utilities for registration and use of text markup.
 
 The site-internal markup supported here is based on Ovid.
 
-'''
+"""
 
 import logging
 import os
@@ -46,7 +46,7 @@ Paragraph = Inline.variant_class(lead_in='<p>{p{',
 
 @Inline.register
 def br(subject=None):
-    '''A line break.
+    """A line break.
 
     This is a workaround for the way that pyaml.dump interacts with
     lines in YAML that end with Markdown's soft break ("  ").
@@ -56,7 +56,7 @@ def br(subject=None):
     is explicitly set to use the '|' block style. The result makes
     affected documents far harder to edit.
 
-    '''
+    """
     return '<br />'
 
 
@@ -99,7 +99,7 @@ def static(path_fragment, subject=None, label=None):
 
 @Inline.register
 def table_of_contents(subject=None, heading='Contents'):
-    '''Produce Markdown for a TOC with a heading that won't appear in it.'''
+    """Produce Markdown for a TOC with a heading that won't appear in it."""
     return '<h2 id="{s}">{h}</h2>\n[TOC]'.format(s=misc.slugify(heading),
                                                  h=heading)
 
@@ -110,7 +110,7 @@ def table_of_contents(subject=None, heading='Contents'):
 
 
 def get_fields(model, classes):
-    '''Identify fields on passed model that may contain cookable markup.
+    """Identify fields on passed model that may contain cookable markup.
 
     Interesting fields are found primarily through a "fields_with_markup"
     attribute, secondarily by class. The primary method is a workaround for
@@ -119,7 +119,7 @@ def get_fields(model, classes):
 
     Return a tuple of field instances.
 
-    '''
+    """
 
     try:
         fields = model.fields_with_markup
@@ -135,37 +135,37 @@ def get_fields(model, classes):
 
 
 def internal_on_string(raw, **kwargs):
-    '''Modify a string (e.g. text field content) based on internal markup.
+    """Modify a string (e.g. text field content) based on internal markup.
 
     This will only be fully effective when it happens after Markdown has
     been resolved, due to the functioning of Paragraph.
 
-    '''
+    """
     paragraph = Paragraph.collective_sub(raw, **kwargs)
     inline = Inline.collective_sub(paragraph, **kwargs)
     return inline
 
 
 def markdown_on_string(raw):
-    '''Convert markdown to HTML with standardized extensions.
+    """Convert markdown to HTML with standardized extensions.
 
     This requires the raw input to be unwrapped already.
 
-    '''
+    """
     extensions = ['markdown.extensions.footnotes',
                   'markdown.extensions.toc']
     return markdown.markdown(raw, extensions=extensions)
 
 
 def all_on_string(string, **kwargs):
-    '''Resolve all markup in passed string.
+    """Resolve all markup in passed string.
 
     The order of operations here is intended for inline internal
     markup to be able to produce new Markdown, and for the resolution
     of Markdown to be able to produce the correct triggering pattern
     for internal paragraph markup.
 
-    '''
+    """
     string = Inline.collective_sub(string, **kwargs)
     string = markdown_on_string(string)
     string = Paragraph.collective_sub(string, **kwargs)

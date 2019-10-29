@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-'''A generic management command.'''
+"""A generic management command."""
 
 
 from django.conf import settings
@@ -10,7 +10,7 @@ import vedm
 
 
 class Command(vedm.management.misc.LoggingLevelCommand):
-    '''A command that is useful out of the box but can be customized.'''
+    """A command that is useful out of the box but can be customized."""
 
     help = 'Resolves all markup in special text fields into HTML.'
 
@@ -35,7 +35,7 @@ class Command(vedm.management.misc.LoggingLevelCommand):
         instance.save()
 
     def treat_field(self, instance, string):
-        '''Manipulate a string, which is the content of a text field.'''
+        """Manipulate a string, which is the content of a text field."""
         string = vedm.util.file.unwrap_paragraphs(string)
 
         try:
