@@ -1,6 +1,6 @@
 # GNU makefile.
 
-.PHONY: wheel deb-package deb-install clean
+.PHONY: wheel deb-package deb-install test clean
 
 NAME := vedm
 UNDERSCORE = $(subst -,_,$(NAME))
@@ -18,6 +18,9 @@ deb-package:
 
 deb-install: deb-package
 	sudo dpkg -i $(DEBNAME)_*.deb
+
+test:
+	python3 runtests.py
 
 clean:
 	-rm -rf *.whl
