@@ -14,7 +14,6 @@ from . import util
 
 class MarkupField(models.TextField):
     """A text field expected to contain markup when first instantiated."""
-    pass
 
 
 class UploadableMixin():
@@ -29,13 +28,12 @@ class UploadableMixin():
         objects have been registered.
 
         """
-
         logging.debug('Instantiating {} en masse.'.format(cls))
         cls._finishing(cls._instantiate_en_masse(raws))
 
     @classmethod
     def _instantiate_en_masse(cls, raws):
-        """Basic object instantiation."""
+        """Instantiate model en masse."""
         by_pk = dict()
         for raw_data, instance in cls._iterate_over_raw_data(raws):
             by_pk[instance.pk] = raw_data
@@ -99,7 +97,6 @@ class UploadableMixin():
         Assume that any tags are to be managed as if by Taggit.
 
         """
-
         slug = util.misc.slugify(title)
         new = cls.objects.create(title=title, slug=slug, **kwargs)
         if tags:
@@ -112,7 +109,7 @@ class UploadableListMixin(UploadableMixin):
 
     @classmethod
     def _iterate_over_raw_data(cls, raws):
-        """An override.
+        """Override parent method.
 
         Assume each object in the raws is a flat list describing one instance.
 
@@ -144,4 +141,6 @@ class Document(models.Model, UploadableMixin):
                                       null=True, on_delete=models.CASCADE)
 
     class Meta():
+        """Model metadata."""
+
         ordering = ['date_created', 'title']

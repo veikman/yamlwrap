@@ -46,7 +46,9 @@ class _RawTextCommand(LoggingLevelCommand):
         pass
 
     def handle(self, *args, **kwargs):
-        """An override to make the full arguments available to overrides.
+        """Handle command.
+
+        This is an override to make full arguments available to overrides.
 
         Inheritors can't simply call super() for this effect without
         bundling together all of the keyword arguments manually.
@@ -72,7 +74,7 @@ class _RawTextCommand(LoggingLevelCommand):
         return files
 
     def _file_identifier(self, filename):
-        """A Boolean for whether or not a found file is relevant."""
+        """Return a Boolean for whether or not a found file is relevant."""
         basename = os.path.basename(filename)
         if self._file_prefix:
             if not basename.startswith(self._file_prefix):
@@ -96,6 +98,7 @@ class RawTextEditingCommand(_RawTextCommand):
     _filename_character_whitelist = string.ascii_letters + string.digits
 
     def add_arguments(self, parser):
+        """Add additional CLI arguments for raw text sources."""
         super().add_arguments(parser)
 
         action = parser.add_mutually_exclusive_group()
@@ -172,7 +175,7 @@ class RawTextEditingCommand(_RawTextCommand):
                             unwrap=unwrap, wrap=wrap)
 
     def _should_open_editor(self):
-        """Custom filtering for whether or not to edit manually. A stub."""
+        """Determine whether to open a text editor. A stub."""
         return True
 
     def _should_open_file_at_end(self, template):
@@ -187,8 +190,7 @@ class RawTextEditingCommand(_RawTextCommand):
         pass
 
     def _describe(self, subject, is_update, filepath):
-        """Base a document on a subject."""
-
+        """Compose a document on a subject."""
         if is_update:
             if not os.path.exists(filepath):
                 logging.error('File for prior description does not exist.')
@@ -250,9 +252,12 @@ class RawTextEditingCommand(_RawTextCommand):
 
 
 class RawTextRefinementCommand(_RawTextCommand):
+    """A command that instantiates models from raw text sources."""
+
     help = 'Create database object(s) from YAML file(s)'
 
     def add_arguments(self, parser):
+        """Add additional CLI arguments for refinement."""
         super().add_arguments(parser)
         parser.add_argument('--additive', action='store_true',
                             help='Do not clear relevant table(s) first'),
@@ -278,6 +283,8 @@ class RawTextRefinementCommand(_RawTextCommand):
 
 
 class DocumentRefinementCommand(RawTextRefinementCommand):
+    """A specialist on documents corresponding to single model instances."""
+
     def _parse_file(self, filepath):
         data = super()._parse_file(filepath)
 

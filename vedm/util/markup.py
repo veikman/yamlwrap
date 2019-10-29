@@ -46,7 +46,7 @@ Paragraph = Inline.variant_class(lead_in='<p>{p{',
 
 @Inline.register
 def br(subject=None):
-    """A line break.
+    """Return a line break.
 
     This is a workaround for the way that pyaml.dump interacts with
     lines in YAML that end with Markdown's soft break ("  ").
@@ -62,6 +62,7 @@ def br(subject=None):
 
 @Inline.register
 def media(path_fragment, subject=None, label=None, transclude=None):
+    """Link to media."""
     if not label:
         label = path_fragment
 
@@ -86,6 +87,7 @@ def media(path_fragment, subject=None, label=None, transclude=None):
 
 @Inline.register
 def static(path_fragment, subject=None, label=None):
+    """Link to a static file."""
     if not label:
         label = path_fragment
 
@@ -120,7 +122,6 @@ def get_fields(model, classes):
     Return a tuple of field instances.
 
     """
-
     try:
         fields = model.fields_with_markup
     except AttributeError:

@@ -12,7 +12,7 @@ from django.conf import settings
 from django.core.management import call_command
 
 
-def run():
+def _run():
     settings.configure(
         DATABASES={
             'default': {
@@ -29,4 +29,4 @@ def run():
 
 
 if __name__ == '__main__':
-    sys.exit(bool(run()))
+    sys.exit(bool(_run()))

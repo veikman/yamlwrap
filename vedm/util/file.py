@@ -115,6 +115,7 @@ def find_files(root_folder, identifier=lambda _: True, single_file=None):
 
 
 def dump(data, **kwargs):
+    """Dump passed data as YAML."""
     return pyaml.dump(data, **kwargs)
 
 
@@ -178,8 +179,7 @@ def transform(raw, model=None, order=True, unwrap=None, wrap=None, lint=None,
 
 
 def paragraph_length_warning(string, threshold=1200):
-    """A lint function for use with _descend()."""
-
+    """Lint string, for use with _descend()."""
     for line in unwrap_paragraphs(string).split('\n'):
         if len(line) > threshold:
             s = 'Long paragraph begins "{}...".'
@@ -189,7 +189,7 @@ def paragraph_length_warning(string, threshold=1200):
 
 
 def unwrap_paragraphs(string):
-    """A modifying function for use with _descend().
+    """Modify string, for use with _descend().
 
     Useful for Unix-style searching and batch processing.
 
@@ -203,10 +203,10 @@ def unwrap_paragraphs(string):
 
 
 def wrap_paragraphs(string, width=None):
-    """A modifying function for use with _descend().
+    """Modify string, for use with _descend().
 
-    Use a custom regex to identify paragraphs, passing these to a
-    lightly customized TextWrapper.
+    Use a custom regex to identify paragraphs, passing these to a lightly
+    customized TextWrapper.
 
     Useful for terminal reading, manual editing and neat re-dumping with
     pyaml. Words longer than pyaml's heuristic threshold will cause
@@ -221,7 +221,7 @@ def wrap_paragraphs(string, width=None):
 
 
 def order_raw_asset_dict(model, mapping):
-    """A modifying function for use with _descend().
+    """Modify string, for use with _descend().
 
     Produce an ordered dictionary for replacement of a regular one.
 
@@ -260,7 +260,6 @@ def order_raw_asset_dict(model, mapping):
 
 def _descend(object_, model, container_functions, string_functions, **kwargs):
     """Walk down through mutable containers, applying functions."""
-
     if isinstance(object_, collections.abc.Mapping):
         for key, value in object_.items():
             if isinstance(value, str):

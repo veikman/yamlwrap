@@ -33,7 +33,6 @@ def app(function, app):
     The app here is expected to be packaged as if by django.apps.
 
     """
-
     # Support explicit ordering.
     try:
         order = settings.MARKUP_MODEL_ORDER

@@ -21,7 +21,7 @@ import unidecode
 
 
 def is_listlike(object_):
-    """True if object_ is an iterable container."""
+    """Return True if object_ is an iterable container."""
     if (isinstance(object_, collections.abc.Iterable) and
             not isinstance(object_, str)):
         return True
@@ -29,7 +29,7 @@ def is_listlike(object_):
 
 
 def is_leaf_mapping(object_):
-    """True if object_ is a mapping and doesn't contain mappings."""
+    """Return True if object_ is a mapping and doesn't contain mappings."""
     if (isinstance(object_, collections.abc.Mapping) and
             not any(map(is_leaf_mapping, object_.values()))):
         return True
@@ -37,6 +37,7 @@ def is_leaf_mapping(object_):
 
 
 def slugify(string):
+    """Return a slug representing passed string."""
     clean = django.utils.html.strip_tags(str(string))
     if not clean:
         s = 'Failed to slugify "{}": Nothing left after HTML tags.'

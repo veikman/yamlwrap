@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Application packaging."""
 
 import os
 from setuptools import setup

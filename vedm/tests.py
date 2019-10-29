@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""App unit tests."""
 
 from unittest import mock
 
@@ -20,7 +21,7 @@ from vedm.util.file import wrap_paragraphs
 from vedm.util.file import unwrap_paragraphs
 
 
-class Models(TestCase):
+class _Models(TestCase):
     def test_document(self):
         fields = get_fields(Document, (MarkupField,))
         ref = (Document._meta.get_field('summary'),
@@ -29,7 +30,7 @@ class Models(TestCase):
         self.assertEqual(ref, fields)
 
 
-class Wrapping(TestCase):
+class _Wrapping(TestCase):
     def _rewrap(self, w0, u0, width=3):
         self.maxDiff = None
 
@@ -161,7 +162,7 @@ class Wrapping(TestCase):
         self.assertEqual(re_wrap, actual)
 
 
-class PrettyYAML(TestCase):
+class _PrettyYAML(TestCase):
     # Tests mainly of the third-party pyaml module itself for clarification.
 
     def test_trivial(self):
@@ -216,7 +217,7 @@ class PrettyYAML(TestCase):
         self.assertEqual(ref, dump_file(s))
 
 
-class CookingMarkdown(TestCase):
+class _CookingMarkdown(TestCase):
 
     def test_two_single_line_paragraphs(self):
         s = 'Line 1.\n\nLine 2.'
@@ -266,7 +267,7 @@ class CookingMarkdown(TestCase):
         self.assertEqual(ref, markdown_on_string(s))
 
 
-class CookingInternalMarkup(TestCase):
+class _CookingInternalMarkup(TestCase):
 
     def test_nested(self):
         def paragraph():
@@ -305,7 +306,7 @@ class CookingInternalMarkup(TestCase):
         self.assertEqual(Inline.collective_sub(s0), s1)
 
 
-class CookingStructure(TestCase):
+class _CookingStructure(TestCase):
 
     def test_sort_single_object_without_model(self):
         o = ("b: 2\n"
@@ -324,7 +325,7 @@ class CookingStructure(TestCase):
         self.assertEqual(ref, transform(o))
 
 
-class CookingSite(TestCase):
+class _CookingSite(TestCase):
 
     def test_chain(self):
         raws = dict(title='Cove, Oregon',
@@ -352,7 +353,7 @@ class CookingSite(TestCase):
         self.assertEqual(ref, doc.body)
 
 
-class Other(TestCase):
+class _Other(TestCase):
 
     def test_slugification(self):
         s = 'This <em>sentence</em> has <span class="vague">some</span> HTML'

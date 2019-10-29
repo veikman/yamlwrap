@@ -1,4 +1,4 @@
-#
+"""vedm.util: App utilities."""
 
 from . import file
 from . import misc
