@@ -219,16 +219,16 @@ class RawTextEditingCommand(_RawTextCommand):
         '''General manipulation of data, e.g. from Internet searches.'''
         pass
 
-    def _transform(self, folder, file, **kwargs):
+    def _transform(self, folder, filepath, **kwargs):
         '''Transform YAML documents for editing or source control.'''
-        for file in self._get_files(folder=folder, file=file):
-            with open(file, mode='r', encoding='utf-8') as f:
+        for filepath in self._get_files(folder=folder, file=filepath):
+            with open(filepath, mode='r', encoding='utf-8') as f:
                 old_yaml = f.read()
 
             new_yaml = uf.transform(old_yaml, model=self._model,
                                     arbitrary=self._data_manipulation,
                                     **kwargs)
-            self._write_spec(file, new_yaml)
+            self._write_spec(filepath, new_yaml)
 
     def _write_spec(self, filepath, new_yaml, mode='w'):
         if new_yaml:

@@ -176,8 +176,10 @@ class PrettyYAML(TestCase):
 
     def test_failure_to_provoke_pipe_with_terminating_space(self):
         data = {'key': 'a \na'}
-        ref = 'key: |-\n  a \n  a\n'
-        self.assertNotEqual(ref, dump_file(data))
+        ref0 = 'key: |-\n  a \n  a\n'
+        self.assertNotEqual(ref0, dump_file(data))
+        ref1 = 'key: "a \\na"\n'
+        self.assertEqual(ref1, dump_file(data))
 
     def test_4byte_unicode(self):
         """Check that a 4-byte Unicode character isn’t encoded in hex.
