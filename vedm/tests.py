@@ -6,6 +6,7 @@ from unittest import mock
 from django.test import TestCase
 from django.core.management import call_command
 import django.template.defaultfilters
+from yaml.parser import ParserError
 
 from vedm.models import MarkupField
 from vedm.models import Document
@@ -49,6 +50,16 @@ class _PrettyYAML(TestCase):
         data = 'key: \n  - a\n'
         ref = {'key': ['a']}
         self.assertEqual(ref, load_string(data))
+
+    def test_loading_block_with_consistent_indentation(self):
+        data = 'key: |-\n   a\n   a\n'
+        ref = {'key': 'a\na'}
+        self.assertEqual(ref, load_string(data))
+
+    def test_loading_block_without_consistent_indentation(self):
+        data = 'key: |-\n   a\n  a\n'
+        with self.assertRaises(ParserError):
+            load_string(data)
 
     def test_4byte_unicode(self):
         """Check that a 4-byte Unicode character isn’t encoded in hex.
@@ -114,6 +125,12 @@ class _Wrapping(TestCase):
         self._rewrap(wrapped, no_wrap)
 
     def test_softbreak(self):
+        """Check that a Markdown soft break is preserved.
+
+        Although this is supported, it is deprecated because of its secondary
+        consequences for pyaml string styles. See vedm.util.markup.br.
+
+        """
         wrapped = 'aa  \nbb'
         no_wrap = 'aa  \nbb'
         self._rewrap(wrapped, no_wrap, width=5)
@@ -213,7 +230,7 @@ class _Wrapping(TestCase):
         re_wrap = 'aa\naa'   # Destroyed.
         actual = unwrap_paragraphs(wrapped)
         self.assertEqual(no_wrap, actual)
-        actual = wrap_paragraphs(actual, width=4)
+        actual = wrap_paragraphs(actual)
         self.assertEqual(re_wrap, actual)
 
     def test_asymmetric_dirty_multiline(self):
@@ -224,6 +241,44 @@ class _Wrapping(TestCase):
         self.assertEqual(no_wrap, actual)
         actual = wrap_paragraphs(actual, width=13)
         self.assertEqual(re_wrap, actual)
+
+
+class _BlockStyleVersusRewrap(TestCase):
+    """Check how rewrapping a single trailing space affects serialization.
+
+    Once unwrapped and rewrapped, a string containing a single space before a
+    newline should lose it, and this in turn should cause pyaml.dump to pick a
+    string style that works well for long human-editable text.
+
+    This is a feature: It’s supposed to prevent disastrous reformatting
+    over an errant space character that has no significance in Markdown.
+
+    Extraneous leading spaces are not covered because the YAML parser treats
+    them as inconsistent indentation, raising a ParserError (tested above).
+
+    """
+
+    def _round_trip(self, init, ref_final, ref_loaded, ref_reserialized):
+        loaded = load_string(init)
+        self.assertEqual(loaded, ref_loaded)
+        self.assertEqual(dump_file(loaded), ref_reserialized)
+        initial_value = loaded['key']
+        rewrapped = wrap_paragraphs(unwrap_paragraphs(initial_value),
+                                    width=8)  # Enough for one word only.
+        recomposed = dict(key=rewrapped)
+        self.assertEqual(dump_file(recomposed), ref_final)
+
+    def test_middle(self):
+        self._round_trip('key: |-\n  alpha \n  beta\n',
+                         'key: |-\n  alpha\n  beta\n',
+                         {'key': 'alpha \nbeta'},
+                         'key: "alpha \\nbeta"\n')
+
+    def test_end(self):
+        self._round_trip('key: |-\n  alpha\n  beta \n',
+                         'key: |-\n  alpha\n  beta\n',
+                         {'key': 'alpha\nbeta '},
+                         'key: "alpha\\nbeta "\n')
 
 
 class _CookingMarkdown(TestCase):
