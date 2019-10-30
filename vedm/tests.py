@@ -21,6 +21,59 @@ from vedm.util.file import wrap_paragraphs
 from vedm.util.file import unwrap_paragraphs
 
 
+class _PrettyYAML(TestCase):
+    """Tests of the third-party pyaml module itself for clarification."""
+
+    def test_trivial(self):
+        data = {'key': 'a'}
+        ref = 'key: a\n'
+        self.assertEqual(ref, dump_file(data))
+
+    def test_provoke_pipe(self):
+        data = {'key': 'a\na'}
+        ref = 'key: |-\n  a\n  a\n'
+        self.assertEqual(ref, dump_file(data))
+
+    def test_failure_to_provoke_pipe_with_terminating_space(self):
+        data = {'key': 'a \na'}
+        ref = 'key: "a \\na"\n'
+        self.assertEqual(ref, dump_file(data))
+
+    def test_4byte_unicode(self):
+        """Check that a 4-byte Unicode character isn’t encoded in hex.
+
+        pyaml should take care of this automatically, whereas PyYAML will not
+        do so by default.
+
+        """
+        s = '🙄'
+        ref = '🙄\n...\n'
+        self.assertEqual(ref, dump_file(s))
+
+    def test_4byte_unicode_with_pipe(self):
+        """Check that a 4-byte Unicode character isn’t encoded in hex.
+
+        Advanced case, with a newline.
+
+        pyaml should take care of this automatically, whereas PyYAML will not
+        do so by default.
+
+        Historically, there have been several problems with this:
+
+        The Debian 9 and 10 editions of PyYAML 3.13 came with libyaml, a C back
+        end that behaved as expected by this test. However, installed from PyPI
+        without libyaml, 3.13 failed this test, implying some problem in the
+        libyaml-agnostic pyaml’s use of PyYAML’s internals or a bug in PyYAML.
+        PyYAML v4 added extended Unicode support which seems to solve the
+        problem even in the PyPI version, though as of 2019-01, v4 is not yet
+        released.
+
+        """
+        s = '🧐\na'
+        ref = '|-\n  🧐\n  a\n'
+        self.assertEqual(ref, dump_file(s))
+
+
 class _Models(TestCase):
     def test_document(self):
         fields = get_fields(Document, (MarkupField,))
@@ -160,61 +213,6 @@ class _Wrapping(TestCase):
         self.assertEqual(no_wrap, actual)
         actual = wrap_paragraphs(actual, width=13)
         self.assertEqual(re_wrap, actual)
-
-
-class _PrettyYAML(TestCase):
-    # Tests mainly of the third-party pyaml module itself for clarification.
-
-    def test_trivial(self):
-        data = {'key': 'a'}
-        ref = 'key: a\n'
-        self.assertEqual(ref, dump_file(data))
-
-    def test_provoke_pipe(self):
-        data = {'key': 'a\na'}
-        ref = 'key: |-\n  a\n  a\n'
-        self.assertEqual(ref, dump_file(data))
-
-    def test_failure_to_provoke_pipe_with_terminating_space(self):
-        data = {'key': 'a \na'}
-        ref0 = 'key: |-\n  a \n  a\n'
-        self.assertNotEqual(ref0, dump_file(data))
-        ref1 = 'key: "a \\na"\n'
-        self.assertEqual(ref1, dump_file(data))
-
-    def test_4byte_unicode(self):
-        """Check that a 4-byte Unicode character isn’t encoded in hex.
-
-        pyaml should take care of this automatically, whereas PyYAML will not
-        do so by default.
-
-        """
-        s = '🙄'
-        ref = '🙄\n...\n'
-        self.assertEqual(ref, dump_file(s))
-
-    def test_4byte_unicode_with_pipe(self):
-        """Check that a 4-byte Unicode character isn’t encoded in hex.
-
-        Advanced case, with a newline.
-
-        pyaml should take care of this automatically, whereas PyYAML will not
-        do so by default.
-
-        Historically, there have been several problems with this:
-
-        The Debian 9 and 10 editions of PyYAML 3.13 came with libyaml, a C back
-        end that behaved as expected by this test. However, installed from PyPI
-        without libyaml, 3.13 failed this test, implying some problem in the
-        libyaml-agnostic pyaml’s use of PyYAML’s internals or a bug in PyYAML.
-        PyYAML v4 added extended Unicode support which seems to solve the
-        problem even in the PyPI version, though as of 2019-01, v4 is not yet
-        released.
-
-        """
-        s = '🧐\na'
-        ref = '|-\n  🧐\n  a\n'
-        self.assertEqual(ref, dump_file(s))
 
 
 class _CookingMarkdown(TestCase):
