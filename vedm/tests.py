@@ -16,6 +16,7 @@ from vedm.util.markup import internal_on_string
 from vedm.util.markup import markdown_on_string
 from vedm.util.misc import slugify
 from vedm.util.file import dump as dump_file
+from vedm.util.file import load as load_string
 from vedm.util.file import transform
 from vedm.util.file import wrap_paragraphs
 from vedm.util.file import unwrap_paragraphs
@@ -38,6 +39,16 @@ class _PrettyYAML(TestCase):
         data = {'key': 'a \na'}
         ref = 'key: "a \\na"\n'
         self.assertEqual(ref, dump_file(data))
+
+    def test_loading_list_without_trailing_space(self):
+        data = 'key:\n  - a\n'
+        ref = {'key': ['a']}
+        self.assertEqual(ref, load_string(data))
+
+    def test_loading_list_with_trailing_space(self):
+        data = 'key: \n  - a\n'
+        ref = {'key': ['a']}
+        self.assertEqual(ref, load_string(data))
 
     def test_4byte_unicode(self):
         """Check that a 4-byte Unicode character isn’t encoded in hex.
