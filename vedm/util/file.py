@@ -20,6 +20,7 @@ particularly a problem when raw text records contain long URLs.
 
 import collections
 import difflib
+from functools import partial
 import logging
 import os
 import re
@@ -132,8 +133,8 @@ def load(data):
     return yaml.load(data)
 
 
-def transform(raw, model=None, order=True, unwrap=None, wrap=None, lint=None,
-              arbitrary=None):
+def transform(raw, model=None, order=True, twopass=True,
+              unwrap=None, wrap=None, lint=None, arbitrary=None):
     """Modify a serialized YAML string if needed.
 
     Return a string if changes are suggested, else return None.
@@ -155,10 +156,13 @@ def transform(raw, model=None, order=True, unwrap=None, wrap=None, lint=None,
             data = f(model, data)
 
     string_functions = list()
-    if unwrap:
-        string_functions.append(unwrap_paragraphs)
-    if wrap:
-        string_functions.append(wrap_paragraphs)
+    if unwrap and wrap and twopass:
+        string_functions.append(rewrap_paragraphs)
+    else:
+        if unwrap:
+            string_functions.append(unwrap_paragraphs)
+        if wrap:
+            string_functions.append(wrap_paragraphs)
     if lint:
         string_functions.append(paragraph_length_warning)
 
@@ -202,7 +206,7 @@ def unwrap_paragraphs(string):
         raise
 
 
-def wrap_paragraphs(string, width=None):
+def wrap_paragraphs(string, **kwargs):
     """Modify string, for use with _descend().
 
     Use a custom regex to identify paragraphs, passing these to a lightly
@@ -213,11 +217,21 @@ def wrap_paragraphs(string, width=None):
     problems with dumping because they are exempt from wrapping.
 
     """
-    _WRAPPER.width = 70
-    if width:  # Custom TextWrapper instances don't take keyword arguments.
-        _WRAPPER.width = width
+    return re.sub(_PARAGRAPH, partial(_wrap, **kwargs), string)
 
-    return re.sub(_PARAGRAPH, _wrap, string)
+
+def rewrap_paragraphs(string, **kwargs):
+    """One- or two-pass combination of wrapping and unwrapping.
+
+    A single pass is designed to be non-destructive of single trailing
+    whitespace characters, but destroying such characters is beneficial
+    where it preserves a VCS-friendly YAML string style.
+
+    """
+    new_string = _rewrap(string, **kwargs)
+    if string == new_string:  # First pass had no impact. Skip second pass.
+        return string
+    return _rewrap(new_string, **kwargs)
 
 
 def order_raw_asset_dict(model, mapping):
@@ -289,7 +303,7 @@ def _log_string_change(old, new):
             logging.debug(line.strip())
 
 
-def _wrap(matchobject):
+def _wrap(matchobject, width=None):
     """Wrap text in a found paragraph.
 
     Protect Markdown's awkward soft-break notation from the wrapper
@@ -297,6 +311,12 @@ def _wrap(matchobject):
     can apparently not be achieved by disabling "drop_whitespace".
 
     """
+    _WRAPPER.width = width or 70
     return ''.join((matchobject.group(1),
                     _WRAPPER.fill(matchobject.group(3)),
                     re.search(r'((  )?)$', matchobject.group(3)).group(1)))
+
+
+def _rewrap(string, **kwargs):
+    """One full pass of unwrapping and wrapping."""
+    return wrap_paragraphs(unwrap_paragraphs(string), **kwargs)

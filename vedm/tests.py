@@ -21,6 +21,7 @@ from vedm.util.file import load as load_string
 from vedm.util.file import transform
 from vedm.util.file import wrap_paragraphs
 from vedm.util.file import unwrap_paragraphs
+from vedm.util.file import rewrap_paragraphs
 
 
 class _PrettyYAML(TestCase):
@@ -118,6 +119,9 @@ class _Wrapping(TestCase):
         self.assertEqual(u0, u2)  # Unwrapped to unwrapped.
         w2 = wrap_paragraphs(u2, width=width)
         self.assertEqual(w0, w2)  # Unwrapped to wrapped.
+
+        r1 = rewrap_paragraphs(w0, width=width)
+        self.assertEqual(w0, r1)  # Round trip.
 
     def test_trivial(self):
         wrapped = 'aa\nbb'
@@ -225,13 +229,14 @@ class _Wrapping(TestCase):
         self._rewrap(wrapped, no_wrap, width=20)
 
     def test_asymmetric_single_space_terminating_line(self):
-        wrapped = 'aa \naa'
-        no_wrap = 'aa \naa'  # Respected by unwrapper only!
-        re_wrap = 'aa\naa'   # Destroyed.
-        actual = unwrap_paragraphs(wrapped)
-        self.assertEqual(no_wrap, actual)
-        actual = wrap_paragraphs(actual)
-        self.assertEqual(re_wrap, actual)
+        dirty = 'aa \naa'  # Trailing space, respected by unwrapper only!
+        clean = 'aa\naa'   # Trailing space destroyed.
+        flat = 'aa aa'     # Line break destroyed (not space-constrained).
+
+        self.assertEqual(dirty, unwrap_paragraphs(dirty))
+        self.assertEqual(clean, wrap_paragraphs(dirty))
+        self.assertEqual(flat, unwrap_paragraphs(clean))
+        self.assertEqual(flat, rewrap_paragraphs(dirty))
 
     def test_asymmetric_dirty_multiline(self):
         wrapped = 'a a\na a a\na a a a'
