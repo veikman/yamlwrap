@@ -167,7 +167,7 @@ class RawTextEditingCommand(_RawTextCommand):
             else:
                 line = 1
 
-            subprocess.call(['gvim', filepath, '+{}'.format(line)])
+            subprocess.call(['editor', filepath, '+{}'.format(line)])
         else:
             if not wrap or unwrap or filepath:
                 logging.info('Transforming all without standardization.')
