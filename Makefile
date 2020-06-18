@@ -26,10 +26,5 @@ test:
 	python3 runtests.py
 
 clean:
-	-rm -rf *.whl
-	-rm -rf build
-	-rm dist/*
-	-rmdir dist/
-	-rm -rf deb_dist
-	-rm *tar.gz
-	-rm *.egg-info/* && rmdir *.egg-info/
+	-rm *.whl *.deb *.tar.gz
+	rm -rf build dist deb_dist *.egg-info
