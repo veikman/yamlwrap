@@ -130,7 +130,7 @@ def load(data):
 
     """
     yaml.reader.Reader.NON_PRINTABLE = _NONPRINTABLE
-    return yaml.load(data)
+    return yaml.safe_load(data)
 
 
 def transform(raw, model=None, order=True, twopass=True,
