@@ -54,8 +54,8 @@ _PARAGRAPH = re.compile(r"""
 \n\n             # Option 3: The normal case: A Markdown paragraph break.
 |
 \n(?=> .)        # Option 4: Markdown quoted paragraph beginning with "> ".
-|
-\n(?=>\n)        # Option 4: Empty line inside Markdown quote block.
+|                    For some reason, “\S” does not work in place of “.”.
+\n(?=>\n)        # Option 5: Empty line inside Markdown quote block.
 )                # End lead-in.
 (                # Begin paragraph contents. Group 3.
 (?:              # Begin unnamed single-character subgroup.
@@ -72,8 +72,10 @@ _PARAGRAPH = re.compile(r"""
 _WRAP_BREAK = re.compile(r"""
 (?<=[^>\n ])     # Lead-in. A positive lookbehind assertion.
                  #   Any character but a ">" or a newline or a space.
-                 #   Spaces are used in "  " soft break notation.
-                 #   Ideally it'd be double space, but lookbehind is fixed.
+                 #   Spaces are used in "  " soft break notation
+                 #   as well as list item continuation. List notation does not
+                 #   appear here because new list items are expected only with
+                 #   trailing content.
 ((>)?)           # Groups 1 and 2. A possible ">".
 \n               # The focal line break.
 (?(2)(?!\s*<))   # If ">" ended the first line, and there's a "<" on the
@@ -81,8 +83,17 @@ _WRAP_BREAK = re.compile(r"""
                  #   take that to mean we're inside an HTML block, such
                  #   as a table. That would mean the focal break was not
                  #   created by wrappping, so do not match.
-(?!>)            # Do not match inside quote blocks.
-(?=.)            # Require some content on the following line.
+(?!              # Negative lookahead. Do not match inside lists or “>” blocks.
+(?:              # Start options of different lengths for lookahead.
+\*               # Do not match items in unnumbered lists.
+|
+\d\.             # Do not match items in numbered lists.
+|
+>                # Do not match in block quotes.
+)                # End option section of lookahead, but not lookahead.
+\s               # Require one space in all preceding options for lookahead.
+)                # End lookahead for being inside lists or quote blocks.
+(?=\S)           # Require some content on the following line.
 """, flags=re.VERBOSE)
 
 # Unicode space ranges.

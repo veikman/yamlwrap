@@ -2,6 +2,7 @@
 """App unit tests."""
 
 from unittest import mock
+from unittest import expectedFailure
 
 from django.test import TestCase
 from django.core.management import call_command
@@ -107,18 +108,31 @@ class _Models(TestCase):
 
 
 class _Wrapping(TestCase):
+
     def _rewrap(self, w0, u0, width=3):
         self.maxDiff = None
 
         w1 = wrap_paragraphs(w0, width=width)
-        self.assertEqual(w0, w1)  # Wrapped to wrapped.
+        self.assertEqual(w0, w1,
+                         msg='Unstable when wrapped. '
+                             'Wrapping the already-wrapped version (+) '
+                             'did not produce the wrapped oracle (-).')
         u1 = unwrap_paragraphs(w1)
-        self.assertEqual(u0, u1)  # Wrapped to unwrapped.
+        self.assertEqual(u0, u1,
+                         msg='Failed to unwrap. '
+                             'Unwrapping the wrapped product (+) '
+                             'did not produce the unwrapped oracle (-).')
 
         u2 = unwrap_paragraphs(u0)
-        self.assertEqual(u0, u2)  # Unwrapped to unwrapped.
+        self.assertEqual(u0, u2,
+                         msg='Unstable when unwrapped. '
+                             'Unwrapping the already-unwrapped version (+) '
+                             'did not produce the unwrapped oracle (-).')
         w2 = wrap_paragraphs(u2, width=width)
-        self.assertEqual(w0, w2)  # Unwrapped to wrapped.
+        self.assertEqual(w0, w2,
+                         msg='Failed to wrap. '
+                             'Rewrapping the unwrapped product (+) '
+                             'did not produce the wrapped oracle (-).')
 
         r1 = rewrap_paragraphs(w0, width=width)
         self.assertEqual(w0, r1)  # Round trip.
@@ -200,12 +214,277 @@ class _Wrapping(TestCase):
         no_wrap = ('a a a a a <b>a a</b> a a a a a')
         self._rewrap(wrapped, no_wrap, width=10)
 
+    def test_bullet_trivial(self):
+        wrapped = ('a a\n\n* b\n\nc c')
+        self._rewrap(wrapped, wrapped)
+
+    def test_bullet_single(self):
+        wrapped = ('a a\n\n* b\nb\n\nc c')
+        no_wrap = ('a a\n\n* b b\n\nc c')
+        self._rewrap(wrapped, no_wrap)
+
+    def test_bullet_unindented(self):
+        wrapped = ('a a\n'
+                   '\n'
+                   '* b b\n'
+                   'b\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '* b b b\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=5)
+
+    def test_bullet_indented_simple(self):
+        wrapped = ('a a\n'
+                   '\n'
+                   '* b b\n'
+                   'b\n'
+                   '    * B\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '* b b b\n'
+                   '    * B\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=5)
+
+    def test_bullet_indented_no_manual_wrap(self):
+        # Here, an indented item exceeds the wrapping width and is ignored.
+        wrapped = ('a a\n'
+                   '\n'
+                   '* b b\n'
+                   'b\n'
+                   '    * B B\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '* b b b\n'
+                   '    * B B\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=5)
+
+    def test_bullet_indented_manual_wrap_short(self):
+        wrapped = ('a a\n'
+                   '\n'
+                   '* b b\n'
+                   'b\n'
+                   '    * B\n'
+                   '      B\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '* b b b\n'
+                   '    * B\n'
+                   '      B\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=5)
+
+    def test_bullet_indented_manual_wrap_long(self):
+        # Three lines instead of the two in the preceding case.
+        wrapped = ('a a\n'
+                   '\n'
+                   '* b b\n'
+                   'b\n'
+                   '    * B\n'
+                   '      B\n'
+                   '      B\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '* b b b\n'
+                   '    * B\n'
+                   '      B\n'
+                   '      B\n'
+                   '* b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=5)
+
+    def test_bullet_deeply_indented(self):
+        # Again, intended items are ignored.
+        wrapped = ('a a\n'
+                   '\n'
+                   '* b b b b b b\n'
+                   'b b b b b b b\n'
+                   '* b\n'
+                   '    * B B\n'
+                   '      B\n'
+                   '        * bb\n'
+                   '          bb\n'
+                   '    * B B B B B\n'
+                   '        * bb bb bb\n'
+                   '        * bb\n'
+                   '            * BB\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '* b b b b b b b b b b b b b\n'
+                   '* b\n'
+                   '    * B B\n'
+                   '      B\n'
+                   '        * bb\n'
+                   '          bb\n'
+                   '    * B B B B B\n'
+                   '        * bb bb bb\n'
+                   '        * bb\n'
+                   '            * BB\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=13)
+
+    def test_numbered_list_trivial(self):
+        wrapped = ('a a\n\n1. b\n\nc c')
+        self._rewrap(wrapped, wrapped, width=4)
+
+    def test_numbered_list_width(self):
+        # At default width for this unit test, break even the simplest
+        # possible numbered list.
+        wrapped = ('a a\n\n1.\nb\n\nc c')
+        no_wrap = ('a a\n\n1. b\n\nc c')
+        self._rewrap(wrapped, no_wrap)
+
+    def test_numbered_list_2digit(self):
+        # Like the trivial case but with a two-digit line number.
+        wrapped = ('a a\n\n29. b\n\nc c')
+        self._rewrap(wrapped, wrapped, width=5)
+
+    def test_numbered_list_single_line(self):
+        wrapped = ('a a\n\n1. b\nb\n\nc c')
+        no_wrap = ('a a\n\n1. b b\n\nc c')
+        self._rewrap(wrapped, no_wrap, width=5)
+
+    def test_numbered_list_unindented_starting_long(self):
+        wrapped = ('a a\n'
+                   '\n'
+                   '2. b b\n'
+                   'b\n'
+                   '3. b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '2. b b b\n'
+                   '3. b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=6)
+
+    @expectedFailure
+    def test_numbered_list_unindented_starting_short(self):
+        wrapped = ('a a\n'
+                   '\n'
+                   '2. b\n'
+                   '3. b b\n'
+                   'b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '2. b\n'
+                   '3. b b b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=6)
+
+        # NOTE: As of 2020-08, the last wrap on item 3 is identified as
+        # purposeful and is not undone. This is arguably bad behaviour;
+        # see below for the supported workaround.
+
+    def test_numbered_list_indented_starting_long(self):
+        # An indented trailing line as part of the first bullet point should
+        # not be affected.
+        wrapped = ('a a\n'
+                   '\n'
+                   '2. b b\n'
+                   '   b\n'
+                   '3. b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, wrapped, width=6)
+        self._rewrap(wrapped, wrapped, width=60)
+
+    def test_numbered_list_indented_starting_short(self):
+        # This is the workaround for the expected failure in
+        # test_numbered_list_unindented_starting_short.
+        wrapped = ('a a\n'
+                   '\n'
+                   '2. b\n'
+                   '3. b b\n'
+                   '   b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, wrapped, width=6)
+        self._rewrap(wrapped, wrapped, width=60)
+
+    def test_numbered_list_indented(self):
+        # Here, the indented line is not broken up.
+        # Nested lists currently require manual wrapping.
+        wrapped = ('a a\n'
+                   '\n'
+                   '2. b b b b\n'
+                   'b\n'
+                   '    1. B B B\n'
+                   '3. b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '2. b b b b b\n'
+                   '    1. B B B\n'
+                   '3. b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=10)
+
+    def test_mixed_list(self):
+        wrapped = ('a a\n'
+                   '\n'
+                   '3. b b\n'
+                   '   b\n'
+                   '2. b\n'
+                   '   b\n'
+                   '    * B B\n'
+                   '    * B\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '3. b b\n'
+                   '   b\n'
+                   '2. b\n'
+                   '   b\n'
+                   '    * B B\n'
+                   '    * B\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=7)
+
     def test_quote_block_oneparagraph(self):
         wrapped = ('a a\n\n> b\nb\n\nc c')
         no_wrap = ('a a\n\n> b b\n\nc c')
         self._rewrap(wrapped, no_wrap)
 
-    def test_quote_block_multiparagraph(self):
+    def test_quote_block_multiparagraph_starting_long(self):
         wrapped = ('a a\n'
                    '\n'
                    '> b b\n'
@@ -219,6 +498,24 @@ class _Wrapping(TestCase):
                    '> b b b\n'
                    '>\n'
                    '> b\n'
+                   '\n'
+                   'c c\n')
+        self._rewrap(wrapped, no_wrap, width=5)
+
+    def test_quote_block_multiparagraph_starting_short(self):
+        wrapped = ('a a\n'
+                   '\n'
+                   '> b b\n'
+                   '>\n'
+                   '> b b\n'
+                   'b\n'
+                   '\n'
+                   'c c\n')
+        no_wrap = ('a a\n'
+                   '\n'
+                   '> b b\n'
+                   '>\n'
+                   '> b b b\n'
                    '\n'
                    'c c\n')
         self._rewrap(wrapped, no_wrap, width=5)
@@ -306,7 +603,7 @@ class _CookingMarkdown(TestCase):
                '<pre><code>Line 2.\n</code></pre>')
         self.assertEqual(ref, markdown_on_string(s))
 
-    def test_flat_bullet_list(self):
+    def test_flat_sparse_bullet_list(self):
         s = ('* Bullet A.\n'
              '\n'
              '* Bullet B.')
@@ -320,7 +617,16 @@ class _CookingMarkdown(TestCase):
                '</ul>')
         self.assertEqual(ref, markdown_on_string(s))
 
-    def test_nested_bullet_list(self):
+    def test_flat_dense_bullet_list(self):
+        s = ('* Bullet A.\n'
+             '* Bullet B.')
+        ref = ('<ul>\n'
+               '<li>Bullet A.</li>\n'
+               '<li>Bullet B.</li>\n'
+               '</ul>')
+        self.assertEqual(ref, markdown_on_string(s))
+
+    def test_nested_sparse_bullet_list(self):
         # As with <pre> above, this needs four spaces of indentation.
         s = ('* Bullet Aa.\n'
              '\n'
@@ -330,6 +636,17 @@ class _CookingMarkdown(TestCase):
                '<p>Bullet Aa.</p>\n'
                '<ul>\n'
                '<li>Bullet Ab.</li>\n'
+               '</ul>\n'
+               '</li>\n'
+               '</ul>')
+        self.assertEqual(ref, markdown_on_string(s))
+
+    def test_nested_dense_bullet_list(self):
+        s = ('* Bullet A.\n'
+             '    * Bullet B.')
+        ref = ('<ul>\n'
+               '<li>Bullet A.<ul>\n'
+               '<li>Bullet B.</li>\n'
                '</ul>\n'
                '</li>\n'
                '</ul>')
