@@ -85,11 +85,6 @@ class UploadableMixin():
             child.parent_object = parent
             child.save()
 
-            if hasattr(child, 'parent_relationship'):
-                if not child.parent_relationship:
-                    s = '“{}” has no relationship to its stated parent.'
-                    logging.error(s.format(child))
-
     @classmethod
     def create(cls, title='', parent_object=None, tags=None, **kwargs):
         """Ignore parent object, because it may not be saved yet.
