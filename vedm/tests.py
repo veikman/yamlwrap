@@ -12,9 +12,7 @@ from yaml.parser import ParserError
 from vedm.models import MarkupField
 from vedm.models import Document
 from vedm.util.markup import Inline
-from vedm.util.markup import Paragraph
 from vedm.util.markup import get_fields
-from vedm.util.markup import internal_on_string
 from vedm.util.markup import markdown_on_string
 from vedm.util.misc import slugify
 from vedm.util.file import dump as dump_file
@@ -654,28 +652,6 @@ class _CookingMarkdown(TestCase):
 
 
 class _CookingInternalMarkup(TestCase):
-
-    def test_nested(self):
-        def paragraph():
-            return '{{inline}}'
-
-        Paragraph(paragraph)
-
-        def inline():
-            return 'i'
-
-        Inline(inline)
-
-        s = ('<p>{p{paragraph}p}</p>\n'
-             '<p>{p{paragraph}p}<!--comment!--></p>\n'
-             '<p>{p{paragraph}p} <!--another comment!--></p>\n'
-             '<p>{{inline}}</p>\n')
-        ref = ('i\n'
-               'i\n'
-               'i\n'
-               '<p>i</p>\n')
-
-        self.assertEqual(ref, internal_on_string(s))
 
     def test_multiline(self):
         def mask(s):

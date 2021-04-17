@@ -11,7 +11,7 @@ import re
 
 import django.conf
 
-import ovid
+from ovid.inspecting import SignatureShorthand
 import markdown
 
 from . import misc
@@ -21,27 +21,19 @@ from . import misc
 # CLASSES #
 ###########
 
-# Registries for site-internal markup:
 
+# A registry for site-internal markup.
 # Multiline support here should be considered unstable. It may be expensive
 # and works poorly with functions that only generate e.g. <span>, without
 # taking paragraphs into account and duplicating the span across each.
-Inline = ovid.inspecting.SignatureShorthand.variant_class(new_registry=False,
-                                                          flags=re.DOTALL)
-
-
-# A variant follows that will replace Markdown-generated HTML paragraph
-# markup around its special delimiters.
-# An HTML comment after the markup is allowed, but will be destroyed.
-Paragraph = Inline.variant_class(lead_in='<p>{p{',
-                                 lead_out='}p}(?: ?<!--.*?-->)?</p>')
+Inline = SignatureShorthand.variant_class(new_registry=False, flags=re.DOTALL)
 
 
 #########################
 # REPLACEMENT FUNCTIONS #
 #########################
 
-# Generic internal markup.
+# Generic internal markup for static documents.
 
 
 @Inline.register
@@ -135,18 +127,6 @@ def get_fields(model, classes):
     return fields
 
 
-def internal_on_string(raw, **kwargs):
-    """Modify a string (e.g. text field content) based on internal markup.
-
-    This will only be fully effective when it happens after Markdown has
-    been resolved, due to the functioning of Paragraph.
-
-    """
-    paragraph = Paragraph.collective_sub(raw, **kwargs)
-    inline = Inline.collective_sub(paragraph, **kwargs)
-    return inline
-
-
 def markdown_on_string(raw):
     """Convert markdown to HTML with standardized extensions.
 
@@ -169,5 +149,4 @@ def all_on_string(string, **kwargs):
     """
     string = Inline.collective_sub(string, **kwargs)
     string = markdown_on_string(string)
-    string = Paragraph.collective_sub(string, **kwargs)
     return string
