@@ -29,7 +29,7 @@ import textwrap
 import yaml  # PyPI: PyYAML.
 import pyaml
 
-from vedm.util import misc
+from yamldoc.util import misc
 
 
 #############

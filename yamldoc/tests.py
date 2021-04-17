@@ -9,18 +9,18 @@ from django.core.management import call_command
 import django.template.defaultfilters
 from yaml.parser import ParserError
 
-from vedm.models import MarkupField
-from vedm.models import Document
-from vedm.util.markup import Inline
-from vedm.util.markup import get_fields
-from vedm.util.markup import markdown_on_string
-from vedm.util.misc import slugify
-from vedm.util.file import dump as dump_file
-from vedm.util.file import load as load_string
-from vedm.util.file import transform
-from vedm.util.file import wrap_paragraphs
-from vedm.util.file import unwrap_paragraphs
-from vedm.util.file import rewrap_paragraphs
+from yamldoc.models import MarkupField
+from yamldoc.models import Document
+from yamldoc.util.markup import Inline
+from yamldoc.util.markup import get_fields
+from yamldoc.util.markup import markdown_on_string
+from yamldoc.util.misc import slugify
+from yamldoc.util.file import dump as dump_file
+from yamldoc.util.file import load as load_string
+from yamldoc.util.file import transform
+from yamldoc.util.file import wrap_paragraphs
+from yamldoc.util.file import unwrap_paragraphs
+from yamldoc.util.file import rewrap_paragraphs
 
 
 class _PrettyYAML(TestCase):
@@ -144,7 +144,7 @@ class _Wrapping(TestCase):
         """Check that a Markdown soft break is preserved.
 
         Although this is supported, it is deprecated because of its secondary
-        consequences for pyaml string styles. See vedm.util.markup.br.
+        consequences for pyaml string styles. See yamldoc.util.markup.br.
 
         """
         wrapped = 'aa  \nbb'
@@ -703,10 +703,10 @@ class _CookingSite(TestCase):
         def replacement(callback, app):
             callback(Document)
 
-        # Depending on the Django project wherein VEDM is tested,
+        # Depending on the Django project wherein yamldoc is tested,
         # traverse.app may fail to include Document.
         # This is the only reason for patching here.
-        with mock.patch('vedm.util.traverse.app', new=replacement):
+        with mock.patch('yamldoc.util.traverse.app', new=replacement):
             call_command('resolve_markup')
 
         doc.refresh_from_db()

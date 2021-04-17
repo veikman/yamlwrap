@@ -109,7 +109,7 @@ def get_fields(model, classes):
     Interesting fields are found primarily through a "fields_with_markup"
     attribute, secondarily by class. The primary method is a workaround for
     the fact that Django does not support reclassing (replacing) fields
-    inherited from third-party parent model classes with vedm's MarkupField.
+    inherited from third-party parent model classes with yamldoc's MarkupField.
 
     Return a tuple of field instances.
 

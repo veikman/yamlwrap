@@ -15,7 +15,7 @@ import subprocess
 
 import django.core.management.base
 
-import vedm.util.file as uf
+import yamldoc.util.file as uf
 
 
 class LoggingLevelCommand(django.core.management.base.BaseCommand):

@@ -20,12 +20,12 @@ def _run():
                 'NAME': 'test-only',
             }
         },
-        INSTALLED_APPS=['vedm'],
+        INSTALLED_APPS=['yamldoc'],
     )
 
     django.setup()
 
-    return call_command('test', 'vedm')
+    return call_command('test', 'yamldoc')
 
 
 if __name__ == '__main__':
