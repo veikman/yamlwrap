@@ -2,8 +2,6 @@ dev*
 *egg-info
 build
 dist
-deb_dist
 *.whl
 *.tar.gz
-*.deb
 __pycache__

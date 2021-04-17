@@ -1,14 +1,14 @@
 # GNU makefile.
 
-.PHONY: wheel test clean
-
-wheel:
-	python3 setup.py bdist_wheel
-	mv dist/*.whl .
+.PHONY: clean, wheel, test
 
 test:
-	python3 runtests.py
+	cd src ; python3 runtests.py
+
+wheel:
+	python3 -m build
+	mv dist/*.whl .
 
 clean:
-	-rm *.whl *.deb *.tar.gz
-	rm -rf build dist deb_dist *.egg-info
+	-rm *.whl *.tar.gz
+	rm -rf build dist *.egg-info
