@@ -10,12 +10,10 @@ import os
 import re
 
 import django.conf
-
-from ovid.inspecting import SignatureShorthand
 import markdown
+from ovid.inspecting import SignatureShorthand
 
 from . import misc
-
 
 ###########
 # CLASSES #

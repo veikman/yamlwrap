@@ -6,8 +6,7 @@ Author: Viktor Eikman <viktor.eikman@gmail.com>
 
 import logging
 
-from django.db import models
-from django.db import transaction
+from django.db import models, transaction
 
 from . import util
 

@@ -1,26 +1,20 @@
 # -*- coding: utf-8 -*-
 """App unit tests."""
 
-from unittest import mock
-from unittest import expectedFailure
+from unittest import expectedFailure, mock
 
-from django.test import TestCase
-from django.core.management import call_command
 import django.template.defaultfilters
+from django.core.management import call_command
+from django.test import TestCase
 from yaml.parser import ParserError
 
-from yamldoc.models import MarkupField
-from yamldoc.models import Document
-from yamldoc.util.markup import Inline
-from yamldoc.util.markup import get_fields
-from yamldoc.util.markup import markdown_on_string
-from yamldoc.util.misc import slugify
+from yamldoc.models import Document, MarkupField
 from yamldoc.util.file import dump as dump_file
 from yamldoc.util.file import load as load_string
-from yamldoc.util.file import transform
-from yamldoc.util.file import wrap_paragraphs
-from yamldoc.util.file import unwrap_paragraphs
-from yamldoc.util.file import rewrap_paragraphs
+from yamldoc.util.file import (rewrap_paragraphs, transform, unwrap_paragraphs,
+                               wrap_paragraphs)
+from yamldoc.util.markup import Inline, get_fields, markdown_on_string
+from yamldoc.util.misc import slugify
 
 
 class _PrettyYAML(TestCase):

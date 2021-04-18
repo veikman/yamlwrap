@@ -17,20 +17,18 @@ particularly a problem when raw text records contain long URLs.
 # IMPORTS #
 ###########
 
-
 import collections
 import difflib
-from functools import partial
 import logging
 import os
 import re
 import textwrap
+from functools import partial
 
-import yaml  # PyPI: PyYAML.
 import pyaml
+import yaml  # PyPI: PyYAML.
 
 from yamldoc.util import misc
-
 
 #############
 # CONSTANTS #

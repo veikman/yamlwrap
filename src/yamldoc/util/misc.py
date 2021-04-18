@@ -5,15 +5,12 @@
 # IMPORTS #
 ###########
 
-
 import collections
 
-from django.template.defaultfilters import slugify as default_slugify
-import django.utils.text
 import django.utils.html
-
+import django.utils.text
 import unidecode
-
+from django.template.defaultfilters import slugify as default_slugify
 
 #######################
 # INTERFACE FUNCTIONS #
