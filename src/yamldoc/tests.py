@@ -700,7 +700,9 @@ class _CookingSite(TestCase):
         # Depending on the Django project wherein yamldoc is tested,
         # traverse.app may fail to include Document.
         # This is the only reason for patching here.
-        with mock.patch('yamldoc.util.traverse.app', new=replacement):
+        with mock.patch('yamldoc.management.commands.resolve_markup.'
+                        'traverse_app',
+                        new=replacement):
             call_command('resolve_markup')
 
         doc.refresh_from_db()
