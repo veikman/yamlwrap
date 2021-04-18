@@ -140,9 +140,7 @@ def all_on_string(string, **kwargs):
     """Resolve all markup in passed string.
 
     The order of operations here is intended for inline internal
-    markup to be able to produce new Markdown, and for the resolution
-    of Markdown to be able to produce the correct triggering pattern
-    for internal paragraph markup.
+    markup to be able to produce new Markdown.
 
     """
     string = Inline.collective_sub(string, **kwargs)
