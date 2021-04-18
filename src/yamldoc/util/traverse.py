@@ -74,4 +74,7 @@ def instance(function, instance, fields, **kwargs):
     for field in fields:
         old = getattr(instance, field.name)
         new = function(instance, old, **kwargs)
+        if not field.null and new is None:
+            # "The Django convention is to use the empty string...”
+            new = ''
         setattr(instance, field.name, new)
