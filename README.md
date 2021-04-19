@@ -1,10 +1,10 @@
 # `yamlwrap`: VCS-friendly documents in YAML
 
 This is a Python module for maintaining arbitrarily long documents in YAML
-mappings, under version control.
+mappings, under version control and subject to text-based tools like `grep`.
 
 `yamlwrap` serves this purpose by wrapping and unwrapping text. Save your YAML
-in wrapped format for meaningful, easily reviewd diffs of short, readable
+in wrapped format for meaningful, easily reviewed diffs of short, readable
 lines. Unwrap it to process multi-line Jinja markup etc.
 
 `yamlwrap` is for people who maintain statically built web sites and prefer
@@ -13,8 +13,8 @@ interfaces.
 
 ## History
 
-`yamlwrap` was originally part `django-yamldoc`, when that project was called
-`vedm`. It became its own module in 2021.
+`yamlwrap` was originally part of `django-yamldoc`, when that project was
+called `vedm`. It became its own module in 2021.
 
 ## Legal
 
