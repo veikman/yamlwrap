@@ -19,20 +19,15 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 """
 
-from unittest import expectedFailure, mock
+from unittest import expectedFailure
 
-import django.template.defaultfilters
-from django.core.management import call_command
 from django.test import TestCase
 from yaml.parser import ParserError
 
-from yamldoc.models import Document, MarkupField
 from yamldoc.util.file import dump as dump_file
 from yamldoc.util.file import load as load_string
-from yamldoc.util.file import (rewrap_paragraphs, transform, unwrap_paragraphs,
+from yamldoc.util.file import (rewrap_paragraphs, unwrap_paragraphs,
                                wrap_paragraphs)
-from yamldoc.util.markup import Inline, get_fields, markdown_on_string
-from yamldoc.util.misc import slugify
 
 
 class _PrettyYAML(TestCase):
@@ -106,15 +101,6 @@ class _PrettyYAML(TestCase):
         s = '🧐\na'
         ref = '|-\n  🧐\n  a\n'
         self.assertEqual(ref, dump_file(s))
-
-
-class _Models(TestCase):
-    def test_document(self):
-        fields = get_fields(Document, (MarkupField,))
-        ref = (Document._meta.get_field('summary'),
-               Document._meta.get_field('ingress'),
-               Document._meta.get_field('body'))
-        self.assertEqual(ref, fields)
 
 
 class _Wrapping(TestCase):
@@ -591,161 +577,3 @@ class _BlockStyleVersusRewrap(TestCase):
                          'key: |-\n  alpha\n  beta\n',
                          {'key': 'alpha\nbeta '},
                          'key: "alpha\\nbeta "\n')
-
-
-class _CookingMarkdown(TestCase):
-
-    def test_two_single_line_paragraphs(self):
-        s = 'Line 1.\n\nLine 2.'
-        ref = '<p>Line 1.</p>\n<p>Line 2.</p>'
-        self.assertEqual(ref, markdown_on_string(s))
-
-    def test_minor_indentation_is_ignored(self):
-        # This is normal behaviour for Python's markdown.
-        # Not a consequence of the site's paragraph wrapping/unwrapping.
-        s = 'Line 1.\n\n  Line 2.'
-        ref = '<p>Line 1.</p>\n<p>Line 2.</p>'
-        self.assertEqual(ref, markdown_on_string(s))
-
-    def test_major_indentation_is_noted(self):
-        s = 'Line 1.\n\n    Line 2.'
-        ref = ('<p>Line 1.</p>\n'
-               '<pre><code>Line 2.\n</code></pre>')
-        self.assertEqual(ref, markdown_on_string(s))
-
-    def test_flat_sparse_bullet_list(self):
-        s = ('* Bullet A.\n'
-             '\n'
-             '* Bullet B.')
-        ref = ('<ul>\n'
-               '<li>\n'
-               '<p>Bullet A.</p>\n'
-               '</li>\n'
-               '<li>\n'
-               '<p>Bullet B.</p>\n'
-               '</li>\n'
-               '</ul>')
-        self.assertEqual(ref, markdown_on_string(s))
-
-    def test_flat_dense_bullet_list(self):
-        s = ('* Bullet A.\n'
-             '* Bullet B.')
-        ref = ('<ul>\n'
-               '<li>Bullet A.</li>\n'
-               '<li>Bullet B.</li>\n'
-               '</ul>')
-        self.assertEqual(ref, markdown_on_string(s))
-
-    def test_nested_sparse_bullet_list(self):
-        # As with <pre> above, this needs four spaces of indentation.
-        s = ('* Bullet Aa.\n'
-             '\n'
-             '    * Bullet Ab.')
-        ref = ('<ul>\n'
-               '<li>\n'
-               '<p>Bullet Aa.</p>\n'
-               '<ul>\n'
-               '<li>Bullet Ab.</li>\n'
-               '</ul>\n'
-               '</li>\n'
-               '</ul>')
-        self.assertEqual(ref, markdown_on_string(s))
-
-    def test_nested_dense_bullet_list(self):
-        s = ('* Bullet A.\n'
-             '    * Bullet B.')
-        ref = ('<ul>\n'
-               '<li>Bullet A.<ul>\n'
-               '<li>Bullet B.</li>\n'
-               '</ul>\n'
-               '</li>\n'
-               '</ul>')
-        self.assertEqual(ref, markdown_on_string(s))
-
-
-class _CookingInternalMarkup(TestCase):
-
-    def test_multiline(self):
-        def mask(s):
-            return s
-
-        Inline(mask)
-
-        s0 = """Uh {{mask|huh.
-
-        Nu}} uh."""
-        s1 = """Uh huh.
-
-        Nu uh."""
-        self.assertEqual(Inline.collective_sub(s0), s1)
-
-
-class _CookingStructure(TestCase):
-
-    def test_sort_single_object_without_model(self):
-        o = ("b: 2\n"
-             "a: 1")
-        ref = ("a: 1\n"
-               "b: 2\n")
-        self.assertEqual(ref, transform(o))
-
-    def test_sort_list(self):
-        o = ("- b: 2\n"
-             "  a: 1\n"
-             "- c: 3\n")
-        ref = ("- a: 1\n"
-               "  b: 2\n"
-               "- c: 3\n")
-        self.assertEqual(ref, transform(o))
-
-
-class _CookingSite(TestCase):
-
-    def test_chain(self):
-        raws = dict(title='Cove, Oregon',
-                    body='**Cove** is a city\nin Union County.\n',
-                    date_created='2016-08-03',
-                    date_updated='2016-08-04')
-        doc = Document.create(**raws)
-
-        ref = '**Cove** is a city\nin Union County.\n'
-        self.assertEqual(ref, doc.body,
-                         msg='Text mutated in document creation.')
-
-        def replacement(callback, app):
-            callback(Document)
-
-        # Depending on the Django project wherein yamldoc is tested,
-        # traverse.app may fail to include Document.
-        # This is the only reason for patching here.
-        with mock.patch('yamldoc.management.commands.resolve_markup.'
-                        'traverse_app',
-                        new=replacement):
-            call_command('resolve_markup')
-
-        doc.refresh_from_db()
-
-        ref = '<p><strong>Cove</strong> is a city in Union County.</p>'
-        self.assertEqual(ref, doc.body)
-
-
-class _Other(TestCase):
-
-    def test_slugification(self):
-        s = 'This <em>sentence</em> has <span class="vague">some</span> HTML'
-        ref = 'this-sentence-has-some-html'
-        self.assertEqual(ref, slugify(s))
-
-    def test_strip(self):
-        s = 'A salute to <a href="www.plaid.com">plaid</a>.'
-        ref = 'A salute to plaid.'
-        self.assertEqual(ref, django.template.defaultfilters.striptags(s))
-
-    def test_markdown_multiline(self):
-        s = ('# A', '', '## a', '', '* li', '', 'p', '')
-        ref = ('<h1 id="a">A</h1>', '<h2 id="a_1">a</h2>',
-               '<ul>', '<li>li</li>', '</ul>',
-               '<p>p</p>')
-
-        self.assertEqual('\n'.join(ref),
-                         markdown_on_string('\n'.join(s)))
