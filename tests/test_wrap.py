@@ -22,10 +22,10 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 from unittest import expectedFailure
 
 from django.test import TestCase
-from yamldoc.util.file import dump as dump_file
-from yamldoc.util.file import load as load_string
-from yamldoc.util.file import (rewrap_paragraphs, unwrap_paragraphs,
-                               wrap_paragraphs)
+
+from yamlwrap import dump as dump_file
+from yamlwrap import load as load_string
+from yamlwrap import rewrap_paragraphs, unwrap_paragraphs, wrap_paragraphs
 
 
 class _Wrapping(TestCase):
@@ -67,7 +67,7 @@ class _Wrapping(TestCase):
         """Check that a Markdown soft break is preserved.
 
         Although this is supported, it is deprecated because of its secondary
-        consequences for pyaml string styles. See yamldoc.util.markup.br.
+        consequences for pyaml string styles.
 
         """
         wrapped = 'aa  \nbb'

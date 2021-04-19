@@ -13,8 +13,8 @@ interfaces.
 
 ## History
 
-`yamlwrap` was originally part `django-yamldoc` of (`vedm`). It became its own
-module in 2021.
+`yamlwrap` was originally part `django-yamldoc`, when that project was called
+`vedm`. It became its own module in 2021.
 
 ## Legal
 

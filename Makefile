@@ -3,7 +3,7 @@
 .PHONY: clean, wheel, test
 
 test:
-	cd src ; python3 runtests.py
+	python3 -m pytest
 
 wheel:
 	python3 -m build
@@ -11,4 +11,4 @@ wheel:
 
 clean:
 	-rm *.whl *.tar.gz
-	rm -rf build dist *.egg-info
+	rm -rf build dist src/*.egg-info

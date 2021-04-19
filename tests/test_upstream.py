@@ -21,8 +21,9 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 from django.test import TestCase
 from yaml.parser import ParserError
-from yamldoc.util.file import dump as dump_file
-from yamldoc.util.file import load as load_string
+
+from yamlwrap import dump as dump_file
+from yamlwrap import load as load_string
 
 
 class _PrettyYAML(TestCase):

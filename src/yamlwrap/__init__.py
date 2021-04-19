@@ -45,6 +45,9 @@ import yaml  # PyPI: PyYAML.
 #############
 
 
+__version__ = '1.0.0-SNAPSHOT'
+
+
 # A custom wrapper adapted for reversibility.
 # Also respects Markdown soft-break line endings ("  ").
 _WRAPPER = textwrap.TextWrapper(break_long_words=False, break_on_hyphens=False)
