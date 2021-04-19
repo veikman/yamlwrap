@@ -1,7 +1,24 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-"""A generic management command."""
+"""A generic management command for site-wide markup resolution.
 
+Author: Viktor Eikman <viktor.eikman@gmail.com>
+
+-------
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""
 
 from django.conf import settings
 from django.db import transaction
@@ -19,7 +36,8 @@ from yamldoc.util.traverse import site as traverse_site
 class Command(LoggingLevelCommand):
     """A command that is useful out of the box but can be customized."""
 
-    help = 'Resolves all markup in special text fields into HTML.'
+    help = ('Resolves all markup in special text fields into HTML, by the '
+            'methods built into yamldoc.')
 
     @transaction.atomic
     def handle(self, *args, **kwargs):

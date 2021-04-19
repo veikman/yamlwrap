@@ -1,8 +1,8 @@
-# `django-yamldoc` – quoins for static sites
+# `django-yamldoc`: Quoins for static sites
 
 This is a Django application for maintaining documents in YAML format and
 refining them to a traditional ORM’d database to serve them to users. It’s for
-people who prefer VCS and powerful text editors over SQL and plutonian
+people who prefer VCS and off-line text editors over SQL and plutonian
 web-based administrative interfaces.
 
 ## Status

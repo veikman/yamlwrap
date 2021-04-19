@@ -1,11 +1,31 @@
 # -*- coding: utf-8 -*-
-"""Utilities for traversing Django apps down to text fields."""
+"""Utilities for traversing Django apps down to text fields.
+
+Author: Viktor Eikman <viktor.eikman@gmail.com>
+
+-------
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""
 
 import logging
 
 import django.apps
 from django.conf import settings
 
+
+# TODO: Add a generator that produces a stream of instances and their fields.
 
 def qualified_class_name(cls):
     """Return a string uniquely identifying a class (not cls.__qualname__).
