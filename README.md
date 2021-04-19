@@ -1,34 +1,23 @@
-# `django-yamldoc`: Quoins for static sites
+# `yamlwrap`: VCS-friendly documents in YAML
 
-This is a Django application for maintaining documents in YAML format and
-refining them to a traditional ORM’d database to serve them to users. It’s for
-people who prefer VCS and off-line text editors over SQL and plutonian
-web-based administrative interfaces.
+This is a Python module for maintaining arbitrarily long documents in YAML
+mappings, under version control.
 
-## Status
+`yamlwrap` serves this purpose by wrapping and unwrapping text. Save your YAML
+in wrapped format for meaningful, easily reviewd diffs of short, readable
+lines. Unwrap it to process multi-line Jinja markup etc.
 
-`yamldoc` is technically reusable, and used in multiple personal projects over
-the years, with some individual YAML documents over a hundred thousand lines
-long. However, `yamldoc` is probably of no interest to you. Its architecture
-is less elegant than the average Django app, mixing various concerns united
-only by the theme of refining YAML to HTML via quearyable SQL.
-
-If you want to pick and choose code under the license, `yamldoc.util.file` is
-central. It handles wrapping and unwrapping of lines (of Markdown) in
-version-controlled YAML documents.
+`yamlwrap` is for people who maintain statically built web sites and prefer
+off-line text editors over SQL and plutonian web-based administrative
+interfaces.
 
 ## History
 
-`yamldoc` was originally called `vedm` for “Viktor Eikman’s Django miscellania”.
-
-Per Django recommendation, `yamldoc` ships with its migrations. Because the
-application is designed for static sites where the entire database is routinely
-rebuilt and therefore disposable, these migrations have been overwritten a few
-times. Under `semver`, things should be more stable nowadays, but do tell me if
-you rely on that.
+`yamlwrap` was originally part `django-yamldoc` of (`vedm`). It became its own
+module in 2021.
 
 ## Legal
 
 Copyright 2016–2021 Viktor Eikman
 
-`django-yamldoc` is licensed as detailed in the accompanying file LICENSE.
+`yamlwrap` is licensed as detailed in the accompanying file LICENSE.
