@@ -31,11 +31,11 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 import collections
 import difflib
-import logging
-import os
 import re
 import textwrap
 from functools import partial
+from logging import getLogger
+from typing import Any, Optional
 
 import pyaml
 import yaml  # PyPI: PyYAML.
@@ -46,7 +46,6 @@ import yaml  # PyPI: PyYAML.
 
 
 __version__ = '1.0.0-SNAPSHOT'
-
 
 # A custom wrapper adapted for reversibility.
 # Also respects Markdown soft-break line endings ("  ").
@@ -112,37 +111,25 @@ _NONPRINTABLE = re.compile(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-'
                            r'\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]')
 
 
+###########
+# OBJECTS #
+###########
+
+
+log = getLogger('yamlwrap')
+
+
 #######################
 # INTERFACE FUNCTIONS #
 #######################
 
 
-def find_files(root_folder, identifier=lambda _: True, single_file=None):
-    """Generate relative paths of asset files with prefix, under a folder.
-
-    If a "single_file" argument is provided, it is assumed to be a relative
-    path to a single file. This design is intended for ease of use with a
-    CLI that takes both folder and file arguments.
-
-    """
-    if single_file:
-        if identifier(single_file):
-            yield single_file
-        return
-
-    for dirpath, _, filenames in os.walk(root_folder):
-        logging.debug('Searching for files in {}.'.format(dirpath))
-        for f in filenames:
-            if identifier(f):
-                yield os.path.join(dirpath, f)
-
-
-def dump(data, **kwargs):
+def dump(data: str, **kwargs) -> str:
     """Dump passed data as YAML."""
     return pyaml.dump(data, **kwargs)
 
 
-def load(data):
+def load(data: str) -> str:
     """Parse passed string as YAML.
 
     The main job of this function is to work around the lack of support for
@@ -155,8 +142,8 @@ def load(data):
     return yaml.safe_load(data)
 
 
-def transform(raw, model=None, order=True, twopass=True,
-              unwrap=None, wrap=None, lint=None, arbitrary=None):
+def transform(raw: str, twopass=True, unwrap=False, wrap=False, lint=False,
+              map_fn=lambda x: x, postdescent_fn=lambda x: x) -> Optional[str]:
     """Modify a serialized YAML string if needed.
 
     Return a string if changes are suggested, else return None.
@@ -168,53 +155,46 @@ def transform(raw, model=None, order=True, twopass=True,
     if unwrap and not wrap:
         dump_args['string_val_style'] = '|'
 
-    container_functions = list()
-    if order:
-        container_functions.append(order_raw_asset_dict)
-
-    # Sort top-level data.
     if isinstance(data, collections.abc.Mapping):
-        for f in container_functions:
-            data = f(model, data)
+        data = map_fn(data)
 
-    string_functions = list()
+    string_fns = list()
     if unwrap and wrap and twopass:
-        string_functions.append(rewrap_paragraphs)
+        string_fns.append(rewrap_paragraphs)
     else:
         if unwrap:
-            string_functions.append(unwrap_paragraphs)
+            string_fns.append(unwrap_paragraphs)
         if wrap:
-            string_functions.append(wrap_paragraphs)
+            string_fns.append(wrap_paragraphs)
+
     if lint:
-        string_functions.append(paragraph_length_warning)
+        string_fns.append(paragraph_length_warning)
 
-    if container_functions or string_functions:
-        _descend(data, model, container_functions, string_functions)
+    _descend(data, map_fn, string_fns)
 
-    if arbitrary:
-        arbitrary(data)
+    postdescent_fn(data)
 
     cooked = dump(data, **dump_args)
 
     if raw == cooked:
         # File mtime is used as default time of last mod in some apps.
         # No real change to save in this case. Signalled with None.
-        return
+        return None
 
     return cooked
 
 
-def paragraph_length_warning(string, threshold=1200):
+def paragraph_length_warning(string: str, threshold=1200):
     """Lint string, for use with _descend()."""
     for line in unwrap_paragraphs(string).split('\n'):
         if len(line) > threshold:
             s = 'Long paragraph begins "{}...".'
-            logging.info(s.format(line[:50]))
+            log.info(s.format(line[:50]))
 
     return string
 
 
-def unwrap_paragraphs(string):
+def unwrap_paragraphs(string: str):
     """Modify string, for use with _descend().
 
     Useful for Unix-style searching and batch processing.
@@ -224,11 +204,11 @@ def unwrap_paragraphs(string):
         return re.sub(_WRAP_BREAK, r'\1 ', string)
     except TypeError:
         s = 'Unable to unwrap "{}".'
-        logging.critical(s.format(repr(string)))
+        log.critical(s.format(repr(string)))
         raise
 
 
-def wrap_paragraphs(string, **kwargs):
+def wrap_paragraphs(string: str, **kwargs):
     """Modify string, for use with _descend().
 
     Use a custom regex to identify paragraphs, passing these to a lightly
@@ -242,7 +222,7 @@ def wrap_paragraphs(string, **kwargs):
     return re.sub(_PARAGRAPH, partial(_wrap, **kwargs), string)
 
 
-def rewrap_paragraphs(string, **kwargs):
+def rewrap_paragraphs(string: str, **kwargs):
     """One- or two-pass combination of wrapping and unwrapping.
 
     A single pass is designed to be non-destructive of single trailing
@@ -256,45 +236,12 @@ def rewrap_paragraphs(string, **kwargs):
     return _rewrap(new_string, **kwargs)
 
 
-def order_raw_asset_dict(model, mapping):
-    """Modify string, for use with _descend().
-
-    Produce an ordered dictionary for replacement of a regular one.
-
-    The passed dictionary should correspond to a model instance.
-    The ordering is based on database schema and is meant to simplify
-    human editing of e.g. YAML.
-
-    The yaml module saves an OrderedDict as if it were a regular dict,
-    but does respect its ordering, until it is loaded again.
-
-    """
-    ordered = collections.OrderedDict()
-    if model:
-        for f in (f.name for f in model._meta.fields):
-            if f in mapping:
-                ordered[f] = mapping[f]
-        for f in mapping:
-            # Any metadata or raw data not named like database fields.
-            if f not in ordered:
-                ordered[f] = mapping[f]
-    else:
-        for f in sorted(mapping):
-            ordered[f] = mapping[f]
-
-    if 'tags' in ordered:
-        # Sort alphabetically and remove duplicates.
-        ordered['tags'] = sorted(set(ordered['tags']))
-
-    return ordered
-
-
 ############
 # INTERNAL #
 ############
 
 
-def _is_listlike(object_):
+def _is_listlike(object_: Any) -> bool:
     """Return True if object_ is an iterable container."""
     if (isinstance(object_, collections.abc.Iterable) and
             not isinstance(object_, str)):
@@ -302,7 +249,7 @@ def _is_listlike(object_):
     return False
 
 
-def _is_leaf_mapping(object_):
+def _is_leaf_mapping(object_: Any) -> bool:
     """Return True if object_ is a mapping and doesn't contain mappings."""
     if (isinstance(object_, collections.abc.Mapping) and
             not any(map(_is_leaf_mapping, object_.values()))):
@@ -310,35 +257,32 @@ def _is_leaf_mapping(object_):
     return False
 
 
-def _descend(object_, model, container_functions, string_functions, **kwargs):
+def _descend(object_: Any, map_fn, string_fns, **kwargs):
     """Walk down through mutable containers, applying functions."""
     if isinstance(object_, collections.abc.Mapping):
         for key, value in object_.items():
             if isinstance(value, str):
-                for f in string_functions:
+                for f in string_fns:
                     object_[key] = f(object_[key], **kwargs)
 
-                if value != object_[key] and len(string_functions) > 1:
+                if value != object_[key] and len(string_fns) > 1:
                     _log_string_change(value, object_[key])
 
-            _descend(object_[key], model, container_functions,
-                     string_functions, **kwargs)
+            _descend(object_[key], map_fn, string_fns, **kwargs)
 
     elif _is_listlike(object_):
         for i, content in enumerate(object_):
             if isinstance(content, collections.abc.Mapping):
-                for f in container_functions:
-                    object_[i] = f(model, object_[i])
+                object_[i] = map_fn(object_[i])
 
-            _descend(object_[i], model, container_functions, string_functions,
-                     **kwargs)
+            _descend(object_[i], map_fn, string_fns, **kwargs)
 
 
-def _log_string_change(old, new):
+def _log_string_change(old: str, new: str):
     d = difflib.unified_diff(old.splitlines(), new.splitlines(), n=1)
     for i, line in enumerate(d):
         if i > 1:
-            logging.debug(line.strip())
+            log.debug(line.strip())
 
 
 def _wrap(matchobject, width=None):
