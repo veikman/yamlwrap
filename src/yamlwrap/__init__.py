@@ -207,11 +207,13 @@ def unwrap(string: str) -> str:
         raise
 
 
-def wrap(string: str, width: int = 70) -> str:
+def wrap(string: str,
+         wrapper=TextWrapper(break_long_words=False, break_on_hyphens=False,
+                             width=70)) -> str:
     """Wrap lines of text on a paragraph level in subject string.
 
     This function uses a regular expression to identify paragraphs, passing
-    these to a lightly customized TextWrapper adapted for reversibility.
+    these to a TextWrapper adapted for reversibility.
 
     The function protects Markdown's soft-break notation from the wrapper
     object by passing only part of the paragraph to it. This effect
@@ -221,9 +223,6 @@ def wrap(string: str, width: int = 70) -> str:
     problems with dumping because they are exempt from wrapping.
 
     """
-    wrapper = TextWrapper(break_long_words=False, break_on_hyphens=False,
-                          width=width)
-
     def replace(match: re.Match) -> str:
         lead, _, body = match.groups()
         return ''.join((lead, wrapper.fill(body),

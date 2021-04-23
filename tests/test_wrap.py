@@ -20,22 +20,28 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
 from pytest import mark
+from textwrap import TextWrapper
 
 from yamlwrap import dump as dump_file
 from yamlwrap import load as load_string
 from yamlwrap import rewrap, unwrap, wrap
 
 
+def _get_wrapper(width):
+    return TextWrapper(break_long_words=False, break_on_hyphens=False,
+                       width=width)
+
 def _rewrap(w0, u0, width=3):
-    w1 = wrap(w0, width=width)  # Wrap already-wrapped content.
+    wrapper = _get_wrapper(width)
+    w1 = wrap(w0, wrapper=wrapper)  # Wrap already-wrapped content.
     assert w0 == w1  # Else unstable (not idempotent) when wrapped.
     u1 = unwrap(w1)  # Unwrap wrapped content.
     assert u0 == u1  # Else product does not match unwrapped oracle.
     u2 = unwrap(u0)  # Unwrap already-unwrapped content.
     assert u0 == u2  # Else unstable (not idempotent) when unwrapped.
-    w2 = wrap(u2, width=width)  # Wrap unwrapped content.
+    w2 = wrap(u2, wrapper=wrapper)  # Wrap unwrapped content.
     assert w0 == w2  # Else product does not match wrapped oracle.
-    r1 = rewrap(w0, width=width)  # Round trip.
+    r1 = rewrap(w0, wrapper=wrapper)  # Round trip.
     assert w0 == r1  # Else unstable in round trip only.
 
 
@@ -477,7 +483,7 @@ def test_asymmetric_dirty_multiline():
     re_wrap = 'a a a a a a a\na a'
     actual = unwrap(wrapped)
     assert no_wrap == actual
-    actual = wrap(actual, width=13)
+    actual = wrap(actual, _get_wrapper(13))
     assert re_wrap == actual
 
 
@@ -500,7 +506,7 @@ def _round_trip(init, ref_final, ref_loaded, ref_reserialized):
     assert dump_file(loaded) == ref_reserialized
     initial_value = loaded['key']
     # Rewrap at a width sufficient for one word only.
-    rewrapped = wrap(unwrap(initial_value), width=8)
+    rewrapped = wrap(unwrap(initial_value), _get_wrapper(8))
     recomposed = dict(key=rewrapped)
     assert dump_file(recomposed) == ref_final
 
