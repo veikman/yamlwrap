@@ -160,12 +160,12 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False, lint=False,
 
     string_fns = list()
     if unwrap and wrap and twopass:
-        string_fns.append(rewrap_paragraphs)
+        string_fns.append(rewrap)
     else:
         if unwrap:
-            string_fns.append(unwrap_paragraphs)
+            string_fns.append(unwrap)
         if wrap:
-            string_fns.append(wrap_paragraphs)
+            string_fns.append(wrap)
 
     if lint:
         string_fns.append(paragraph_length_warning)
@@ -186,7 +186,7 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False, lint=False,
 
 def paragraph_length_warning(string: str, threshold=1200):
     """Lint string, for use with _descend()."""
-    for line in unwrap_paragraphs(string).split('\n'):
+    for line in unwrap(string).split('\n'):
         if len(line) > threshold:
             s = 'Long paragraph begins "{}...".'
             log.info(s.format(line[:50]))
@@ -194,7 +194,7 @@ def paragraph_length_warning(string: str, threshold=1200):
     return string
 
 
-def unwrap_paragraphs(string: str):
+def unwrap(string: str):
     """Modify string, for use with _descend().
 
     Useful for Unix-style searching and batch processing.
@@ -208,7 +208,7 @@ def unwrap_paragraphs(string: str):
         raise
 
 
-def wrap_paragraphs(string: str, **kwargs):
+def wrap(string: str, **kwargs):
     """Modify string, for use with _descend().
 
     Use a custom regex to identify paragraphs, passing these to a lightly
@@ -222,7 +222,7 @@ def wrap_paragraphs(string: str, **kwargs):
     return re.sub(_PARAGRAPH, partial(_wrap, **kwargs), string)
 
 
-def rewrap_paragraphs(string: str, **kwargs):
+def rewrap(string: str, **kwargs):
     """One- or two-pass combination of wrapping and unwrapping.
 
     A single pass is designed to be non-destructive of single trailing
@@ -301,4 +301,4 @@ def _wrap(matchobject, width=None):
 
 def _rewrap(string, **kwargs):
     """One full pass of unwrapping and wrapping."""
-    return wrap_paragraphs(unwrap_paragraphs(string), **kwargs)
+    return wrap(unwrap(string), **kwargs)
