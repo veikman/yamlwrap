@@ -124,9 +124,9 @@ log = getLogger('yamlwrap')
 #######################
 
 
-def dump(data: str, **kwargs) -> str:
-    """Dump passed data as YAML."""
-    return pyaml.dump(data, **kwargs)
+# Round out the yamlwrap API by exposing pyaml.dump as an interface.
+# This could become a wrapper in a future version of yamlwrap.
+dump = pyaml.dump
 
 
 def load(data: str) -> str:
