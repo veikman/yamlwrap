@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""yamlwrap functions.
+"""All of yamlwrap in one module.
 
 This module could be expanded with customizations of the yaml/pyaml modules
 to work around the fact that they avoid the desired '|' (literal) style for
@@ -32,9 +32,8 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 import collections
 import difflib
 import re
-import textwrap
-from functools import partial
 from logging import getLogger
+from textwrap import TextWrapper
 from typing import Any, Optional
 
 import pyaml
@@ -47,9 +46,6 @@ import yaml  # PyPI: PyYAML.
 
 __version__ = '1.0.0-SNAPSHOT'
 
-# A custom wrapper adapted for reversibility.
-# Also respects Markdown soft-break line endings ("  ").
-_WRAPPER = textwrap.TextWrapper(break_long_words=False, break_on_hyphens=False)
 
 # Identify a paragraph for some Markdown-like purposes.
 _PARAGRAPH = re.compile(r"""
@@ -105,6 +101,9 @@ _WRAP_BREAK = re.compile(r"""
 )                # End lookahead for being inside lists or quote blocks.
 (?=\S)           # Require some content on the following line.
 """, flags=re.VERBOSE)
+
+# Identify a soft break at the end of a line in e.g. Markdown.
+_MARKDOWN_SOFTBREAK = re.compile(r'((  )?)$')
 
 # Unicode space ranges.
 _NONPRINTABLE = re.compile(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-'
@@ -194,8 +193,8 @@ def paragraph_length_warning(string: str, threshold=1200):
     return string
 
 
-def unwrap(string: str):
-    """Modify string, for use with _descend().
+def unwrap(string: str) -> str:
+    """Unwrap lines of text on a paragraph level in subject string.
 
     Useful for Unix-style searching and batch processing.
 
@@ -208,22 +207,33 @@ def unwrap(string: str):
         raise
 
 
-def wrap(string: str, **kwargs):
-    """Modify string, for use with _descend().
+def wrap(string: str, width: int = 70) -> str:
+    """Wrap lines of text on a paragraph level in subject string.
 
-    Use a custom regex to identify paragraphs, passing these to a lightly
-    customized TextWrapper.
+    This function uses a regular expression to identify paragraphs, passing
+    these to a lightly customized TextWrapper adapted for reversibility.
 
-    Useful for terminal reading, manual editing and neat re-dumping with
-    pyaml. Words longer than pyaml's heuristic threshold will cause
+    The function protects Markdown's soft-break notation from the wrapper
+    object by passing only part of the paragraph to it. This effect
+    can apparently not be achieved by disabling "drop_whitespace".
+
+    Words longer than pyaml's heuristic threshold will cause
     problems with dumping because they are exempt from wrapping.
 
     """
-    return re.sub(_PARAGRAPH, partial(_wrap, **kwargs), string)
+    wrapper = TextWrapper(break_long_words=False, break_on_hyphens=False,
+                          width=width)
+
+    def replace(match: re.Match) -> str:
+        lead, _, body = match.groups()
+        return ''.join((lead, wrapper.fill(body),
+                        _MARKDOWN_SOFTBREAK.search(body).group(1)))
+
+    return _PARAGRAPH.sub(replace, string)
 
 
 def rewrap(string: str, **kwargs):
-    """One- or two-pass combination of wrapping and unwrapping.
+    """Run a one- or two-pass combination of wrapping and unwrapping.
 
     A single pass is designed to be non-destructive of single trailing
     whitespace characters, but destroying such characters is beneficial
@@ -283,20 +293,6 @@ def _log_string_change(old: str, new: str):
     for i, line in enumerate(d):
         if i > 1:
             log.debug(line.strip())
-
-
-def _wrap(matchobject, width=None):
-    """Wrap text in a found paragraph.
-
-    Protect Markdown's awkward soft-break notation from the wrapper
-    object by passing only part of the paragraph to it. This effect
-    can apparently not be achieved by disabling "drop_whitespace".
-
-    """
-    _WRAPPER.width = width or 70
-    return ''.join((matchobject.group(1),
-                    _WRAPPER.fill(matchobject.group(3)),
-                    re.search(r'((  )?)$', matchobject.group(3)).group(1)))
 
 
 def _rewrap(string, **kwargs):
