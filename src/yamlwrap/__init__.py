@@ -34,7 +34,7 @@ import difflib
 import re
 from logging import getLogger
 from textwrap import TextWrapper
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import pyaml
 import yaml  # PyPI: PyYAML.
@@ -141,11 +141,17 @@ def load(data: str) -> str:
     return yaml.safe_load(data)
 
 
-def transform(raw: str, twopass=True, unwrap=False, wrap=False, lint=False,
-              map_fn=lambda x: x, postdescent_fn=lambda x: x) -> Optional[str]:
+def transform(raw: str, twopass=True, unwrap=False, wrap=False,
+              lint_fn: Callable[[str], None] = None, map_fn=lambda x: x,
+              postdescent_fn=lambda x: x) -> Optional[str]:
     """Modify a serialized YAML string if needed.
 
     Return a string if changes are suggested, else return None.
+
+    This is a crude high-level API that deserializes YAML, walks through an
+    arbitrarily complex data structure inside, and round-trips back to
+    serialized data. Not all options for lower-level functions conditionally
+    called from here are exposed.
 
     """
     data = load(raw)
@@ -166,8 +172,11 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False, lint=False,
         if wrap:
             string_fns.append(wrap)
 
-    if lint:
-        string_fns.append(paragraph_length_warning)
+    if lint_fn:
+        def lint(r: str) -> str:
+            lint_fn(r)
+            return r
+        string_fns.append(lint)
 
     _descend(data, map_fn, string_fns)
 
@@ -183,27 +192,27 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False, lint=False,
     return cooked
 
 
-def paragraph_length_warning(string: str, threshold=1200):
-    """Lint string, for use with _descend()."""
+def warn_on_long_paragraph(string: str, threshold=1200):
+    """Inspect string for paragraphs that are impractically long.
+
+    Markup resolvers and human readers both tend to perform at a
+    worse-than-linear rate with longer strings of text.
+
+    This is an example of a linter function, for use with _descend(), either by
+    transform() or in a continuous-integration pipeline etc.
+
+    """
     for line in unwrap(string).split('\n'):
         if len(line) > threshold:
-            s = 'Long paragraph begins "{}...".'
-            log.info(s.format(line[:50]))
-
-    return string
+            log.info(f'Long paragraph begins "{line[:50]}...".')
 
 
 def unwrap(string: str) -> str:
-    """Unwrap lines of text on a paragraph level in subject string.
-
-    Useful for Unix-style searching and batch processing.
-
-    """
+    """Unwrap lines of text on a paragraph level in subject string."""
     try:
-        return re.sub(_WRAP_BREAK, r'\1 ', string)
+        return _WRAP_BREAK.sub(r'\1 ', string)
     except TypeError:
-        s = 'Unable to unwrap "{}".'
-        log.critical(s.format(repr(string)))
+        log.critical(f'Unable to unwrap "{string!r}".')
         raise
 
 
