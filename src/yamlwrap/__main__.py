@@ -66,7 +66,7 @@ def path(mandatory=False, must_exist=False):
 def define_cli():
     """Construct a CLI argument parser."""
     s = 'Transform YAML.'
-    parser = argparse.ArgumentParser(description=s)
+    parser = argparse.ArgumentParser(prog='yamlwrap', description=s)
     level = parser.add_mutually_exclusive_group()
     level.set_defaults(logging_level=logging.INFO)
     level.add_argument('--verbose', dest='logging_level', action='store_const',
@@ -81,6 +81,9 @@ def define_cli():
         subparser.set_defaults(function=function)
 
         if transform:
+            subparser.add_argument('source',
+                                   type=path(mandatory=True, must_exist=True),
+                                   help='source file path')
             group = subparser.add_mutually_exclusive_group(required=True)
             group.add_argument('--wrap', default=False, action='store_true',
                                help='keep lines short')
@@ -94,23 +97,21 @@ def define_cli():
     add_mode('version', lambda _: print(__version__))
 
     writem = add_mode('write', write, transform=True)
-    writem.add_argument('source', type=path(mandatory=True, must_exist=True),
-                        help='source file path')
     target = writem.add_mutually_exclusive_group(required=True)
     target.add_argument('--in-place', action='store_true',
-                        help='replace the contents of the source file')
-    target.add_argument('--target', type=path(),
+                        help='replace the contents of the source file; '
+                             'no backup is created')
+    target.add_argument('--target', metavar='FILE', type=path(),
                         help='file path for storing the results of '
                              'transforming the contents of the source file; '
                              'if this file exists it will be overwritten')
 
     diffm = add_mode('diff', diff_, transform=True)
-    diffm.add_argument('source', type=path(mandatory=True, must_exist=True),
-                       help='source file path')
-    diffm.add_argument('--reference', type=path(must_exist=True),
+    diffm.add_argument('--reference', metavar='FILE',
+                       type=path(must_exist=True),
                        help='file path for comparison; if omitted, compare '
-                       'source file contents before and after '
-                       'transformation')
+                            'source file contents before and after '
+                            'transformation')
 
     return parser
 
