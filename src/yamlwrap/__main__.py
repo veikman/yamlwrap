@@ -44,18 +44,23 @@ def diff_(args):
     return 0
 
 
-def path(raw):
-    """Encapsulate a “type” for argparse."""
-    p = Path(raw)
-    if not p.exists():
-        log.error(f'“{p}” does not exist.', file=sys.stderr)
-        raise argparse.ArgumentTypeError('File not found.')
-    return p
-
-
-def optional_path(raw):
-    """Encapsulate a “type” for argparse."""
-    return path(raw) if raw else None
+def path(mandatory=False, must_exist=False):
+    """Close over a “type” function for argparse."""
+    def parser(raw):
+        try:
+            if not mandatory and raw is None:
+                return None
+            p = Path(raw)
+            if must_exist and not p.exists():
+                raise argparse.ArgumentTypeError(f'File “{p}” not found.')
+            return p
+        except argparse.ArgumentTypeError:
+            raise
+        except Exception as e:
+            # argparse might eat this exception without comment.
+            print(f'Exception in path interpretation: {e!r}', file=sys.stderr)
+            raise
+    return parser
 
 
 def define_cli():
@@ -89,18 +94,20 @@ def define_cli():
     add_mode('version', lambda _: print(__version__))
 
     writem = add_mode('write', write, transform=True)
-    writem.add_argument('source', type=path, help='source file path')
+    writem.add_argument('source', type=path(mandatory=True, must_exist=True),
+                        help='source file path')
     target = writem.add_mutually_exclusive_group(required=True)
     target.add_argument('--in-place', action='store_true',
                         help='replace the contents of the source file')
-    target.add_argument('--target', type=path,
+    target.add_argument('--target', type=path(),
                         help='file path for storing the results of '
                              'transforming the contents of the source file; '
                              'if this file exists it will be overwritten')
 
     diffm = add_mode('diff', diff_, transform=True)
-    diffm.add_argument('source', type=path, help='source file path')
-    diffm.add_argument('--reference', type=path,
+    diffm.add_argument('source', type=path(mandatory=True, must_exist=True),
+                       help='source file path')
+    diffm.add_argument('--reference', type=path(must_exist=True),
                        help='file path for comparison; if omitted, compare '
                        'source file contents before and after '
                        'transformation')
