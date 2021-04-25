@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""All of yamlwrap in one module.
+"""All of yamlwrap’s library functionality.
 
 This module could be expanded with customizations of the yaml/pyaml modules
 to work around the fact that they avoid the desired '|' (literal) style for
