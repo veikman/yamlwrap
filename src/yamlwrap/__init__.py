@@ -34,7 +34,7 @@ import difflib
 import re
 from logging import getLogger
 from textwrap import TextWrapper
-from typing import Any, Callable, Optional
+from typing import Any, Callable, List, Optional
 
 import pyaml
 import yaml  # PyPI: PyYAML.
@@ -142,8 +142,8 @@ def load(data: str) -> str:
 
 
 def transform(raw: str, twopass=True, unwrap=False, wrap=False,
-              lint_fn: Callable[[str], None] = None, map_fn=lambda x: x,
-              postdescent_fn=lambda x: x) -> Optional[str]:
+              lint_fn: Optional[Callable[[str], None]] = None,
+              map_fn=lambda x: x, postdescent_fn=lambda x: x) -> Optional[str]:
     """Modify a serialized YAML string if needed.
 
     Return a string if changes are suggested, else return None.
@@ -163,16 +163,16 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False,
     if isinstance(data, collections.abc.Mapping):
         data = map_fn(data)
 
-    string_fns = list()
+    string_fns: List[Callable[[str], str]] = list()
     if unwrap and wrap and twopass:
-        string_fns.append(rewrap)
+        string_fns.append(_rewrap)
     else:
         if unwrap:
-            string_fns.append(unwrap)
+            string_fns.append(_unwrap)
         if wrap:
-            string_fns.append(wrap)
+            string_fns.append(_wrap)
 
-    if lint_fn:
+    if lint_fn is not None:
         def lint(r: str) -> str:
             lint_fn(r)
             return r
@@ -257,6 +257,14 @@ def rewrap(string: str, **kwargs):
 ############
 # INTERNAL #
 ############
+
+
+# Aliases defined for the benefit of transform, where user-friendly keyword
+# arguments would otherwise be identical to the names of the functions aliased
+# here.
+_rewrap = rewrap
+_unwrap = unwrap
+_wrap = wrap
 
 
 def _is_listlike(object_: Any) -> bool:
