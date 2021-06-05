@@ -44,7 +44,7 @@ import yaml  # PyPI: PyYAML.
 #############
 
 
-__version__ = '1.0.0'
+__version__ = '2.0.0-SNAPSHOT'
 
 
 # Identify a paragraph for some Markdown-like purposes.
