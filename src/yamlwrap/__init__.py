@@ -33,9 +33,9 @@ import collections
 import difflib
 import re
 from logging import getLogger
-from textwrap import TextWrapper
 from typing import Any, Callable, List, Optional
 
+import punwrap
 import pyaml
 import yaml  # PyPI: PyYAML.
 
@@ -46,64 +46,6 @@ import yaml  # PyPI: PyYAML.
 
 __version__ = '2.0.0-SNAPSHOT'
 
-
-# Identify a paragraph for some Markdown-like purposes.
-_PARAGRAPH = re.compile(r"""
-(                # Begin lead-in. This is group 1, just because
-                 #   lookbehinds must have a fixed width, and we don't.
-(?:^|\n)         # Option 1: Single break for what looks like HTML.
-(\s*<)           # This part of option 1 is group 2, which overlaps group 1.
-|
-^                # Option 2: Start of record under other circumstances.
-\n?              # An initial blank line will be respected.
-|
-\n\n             # Option 3: The normal case: A Markdown paragraph break.
-|
-\n(?=> .)        # Option 4: Markdown quoted paragraph beginning with "> ".
-|                    For some reason, “\S” does not work in place of “.”.
-\n(?=>\n)        # Option 5: Empty line inside Markdown quote block.
-)                # End lead-in.
-(                # Begin paragraph contents. Group 3.
-(?:              # Begin unnamed single-character subgroup.
-(?(2)            # Begin conditional special treatment of HTML. This
-                 #   conditional subgroup identifies a paragraph end.
-(?!>(?:\n|$))    # HTML endings. A single break will suffice.
-|
-(?!\n\n|\n?$))   # Non-HTML endings require a double break.
-.)+              # End and repeat unnamed single-character subgroup.
-)                # End paragraph contents.
-""", flags=re.VERBOSE)
-
-# Identify a line break likely to have been introduced by automatic wrapping.
-_WRAP_BREAK = re.compile(r"""
-(?<=[^>\n ])     # Lead-in. A positive lookbehind assertion.
-                 #   Any character but a ">" or a newline or a space.
-                 #   Spaces are used in "  " soft break notation
-                 #   as well as list item continuation. List notation does not
-                 #   appear here because new list items are expected only with
-                 #   trailing content.
-((>)?)           # Groups 1 and 2. A possible ">".
-\n               # The focal line break.
-(?(2)(?!\s*<))   # If ">" ended the first line, and there's a "<" on the
-                 #   next line (with only whitespace allowed in between),
-                 #   take that to mean we're inside an HTML block, such
-                 #   as a table. That would mean the focal break was not
-                 #   created by wrappping, so do not match.
-(?!              # Negative lookahead. Do not match inside lists or “>” blocks.
-(?:              # Start options of different lengths for lookahead.
-\*               # Do not match items in unnumbered lists.
-|
-\d\.             # Do not match items in numbered lists.
-|
->                # Do not match in block quotes.
-)                # End option section of lookahead, but not lookahead.
-\s               # Require one space in all preceding options for lookahead.
-)                # End lookahead for being inside lists or quote blocks.
-(?=\S)           # Require some content on the following line.
-""", flags=re.VERBOSE)
-
-# Identify a soft break at the end of a line in e.g. Markdown.
-_MARKDOWN_SOFTBREAK = re.compile(r'((  )?)$')
 
 # Unicode space ranges.
 _NONPRINTABLE = re.compile(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-'
@@ -209,49 +151,22 @@ def warn_on_long_paragraph(string: str, threshold=1200):
 
 def unwrap(string: str) -> str:
     """Unwrap lines of text on a paragraph level in subject string."""
-    try:
-        return _WRAP_BREAK.sub(r'\1 ', string)
-    except TypeError:
-        log.critical(f'Unable to unwrap "{string!r}".')
-        raise
+    return punwrap.unwrap(string)
 
 
-def wrap(string: str,
-         wrapper=TextWrapper(break_long_words=False, break_on_hyphens=False,
-                             width=70)) -> str:
+def wrap(string: str, width=70) -> str:
     """Wrap lines of text on a paragraph level in subject string.
-
-    This function uses a regular expression to identify paragraphs, passing
-    these to a TextWrapper adapted for reversibility.
-
-    The function protects Markdown's soft-break notation from the wrapper
-    object by passing only part of the paragraph to it. This effect
-    can apparently not be achieved by disabling "drop_whitespace".
 
     Words longer than pyaml's heuristic threshold will cause
     problems with dumping because they are exempt from wrapping.
 
     """
-    def replace(match: re.Match) -> str:
-        lead, _, body = match.groups()
-        return ''.join((lead, wrapper.fill(body),
-                        _MARKDOWN_SOFTBREAK.search(body).group(1)))
-
-    return _PARAGRAPH.sub(replace, string)
+    return punwrap.wrap(string, width)
 
 
-def rewrap(string: str, **kwargs):
-    """Run a one- or two-pass combination of wrapping and unwrapping.
-
-    A single pass is designed to be non-destructive of single trailing
-    whitespace characters, but destroying such characters is beneficial
-    where it preserves a VCS-friendly YAML string style.
-
-    """
-    new_string = _rewrap(string, **kwargs)
-    if string == new_string:  # First pass had no impact. Skip second pass.
-        return string
-    return _rewrap(new_string, **kwargs)
+def rewrap(string: str, width=70):
+    """Rewrap lines of text on a paragraph level in subject string."""
+    return punwrap.rewrap(string, width)
 
 
 ############
@@ -271,14 +186,6 @@ def _is_listlike(object_: Any) -> bool:
     """Return True if object_ is an iterable container."""
     if (isinstance(object_, collections.abc.Iterable) and
             not isinstance(object_, str)):
-        return True
-    return False
-
-
-def _is_leaf_mapping(object_: Any) -> bool:
-    """Return True if object_ is a mapping and doesn't contain mappings."""
-    if (isinstance(object_, collections.abc.Mapping) and
-            not any(map(_is_leaf_mapping, object_.values()))):
         return True
     return False
 
@@ -309,8 +216,3 @@ def _log_string_change(old: str, new: str):
     for i, line in enumerate(d):
         if i > 1:
             log.debug(line.strip())
-
-
-def _rewrap(string, **kwargs):
-    """One full pass of unwrapping and wrapping."""
-    return wrap(unwrap(string), **kwargs)
