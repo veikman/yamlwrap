@@ -99,184 +99,49 @@ def test_block_html_minimal():
     _rewrap(wrapped, no_wrap, width=5)
 
 
-def test_block_html_uncondensed():
-    wrapped = ('<table>\n\n'
-               '  <tr>\n\n'
-               '    <td>The only\ndata</td>\n\n'
-               '  </tr>\n\n'
-               '</table>')
-    no_wrap = ('<table>\n\n'
-               '  <tr>\n\n'
-               '    <td>The only data</td>\n\n'
-               '  </tr>\n\n'
-               '</table>')
-    _rewrap(wrapped, no_wrap, width=15)
-
-
-def test_block_html_compact():
-    wrapped = ('<table>\n'
-               '  <tr>\n'
-               '    <td>The only\ndata</td>\n'
-               '  </tr>\n'
-               '</table>\n')
-    no_wrap = ('<table>\n'
-               '  <tr>\n'
-               '    <td>The only data</td>\n'
-               '  </tr>\n'
-               '</table>\n')
-    _rewrap(wrapped, no_wrap, width=15)
+@mark.parametrize(
+    "text,width",
+    [
+     ('<table>\n\n'
+      '  <tr>\n\n'
+      '    <td>The only\ndata</td>\n\n'
+      '  </tr>\n\n'
+      '</table>', 15),
+     ('<table>\n'
+      '  <tr>\n'
+      '    <td>The only data</td>\n'
+      '  </tr>\n'
+      '</table>\n', 15),
+     ('a a\n\n* b\n\nc c', 3),
+     ('a a\n\n* b\nb\n\nc c', 3),
+     ('a a\n\n* b b\n\nc c', 3),
+     ('a a\n\n* b b\nb\n* b\n\nc c\n', 5),
+     ('a a\n\n* b b\nb\n    * B\n* b\n\nc c\n', 5),
+     # As in runwrap, only multi-paragraph list items are treated.
+     ('a a\n'
+      '\n'
+      '* b b b b b b b b b b b b b\n'
+      '* b\n'
+      '    * B B\n'
+      '      B\n'
+      '        * bb\n'
+      '          bb\n'
+      '    * B B B B B\n'
+      '        * bb bb bb\n'
+      '        * bb\n'
+      '            * BB\n'
+      '\n'
+      'c c\n', 10)
+    ]
+)
+def test_idempotent(text, width):
+    _rewrap(text, text, width=width)
 
 
 def test_inline_html():
     wrapped = ('a a a a a\n<b>a a</b>\na a a a a')
     no_wrap = ('a a a a a <b>a a</b> a a a a a')
     _rewrap(wrapped, no_wrap, width=10)
-
-
-def test_bullet_trivial():
-    wrapped = ('a a\n\n* b\n\nc c')
-    _rewrap(wrapped, wrapped)
-
-
-def test_bullet_single():
-    wrapped = ('a a\n\n* b\nb\n\nc c')
-    no_wrap = ('a a\n\n* b b\n\nc c')
-    _rewrap(wrapped, no_wrap)
-
-
-def test_bullet_unindented():
-    wrapped = ('a a\n'
-               '\n'
-               '* b b\n'
-               'b\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '* b b b\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=5)
-
-
-def test_bullet_indented_simple():
-    wrapped = ('a a\n'
-               '\n'
-               '* b b\n'
-               'b\n'
-               '    * B\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '* b b b\n'
-               '    * B\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=5)
-
-
-def test_bullet_indented_no_manual_wrap():
-    # Here, an indented item exceeds the wrapping width and is ignored.
-    wrapped = ('a a\n'
-               '\n'
-               '* b b\n'
-               'b\n'
-               '    * B B\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '* b b b\n'
-               '    * B B\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=5)
-
-
-def test_bullet_indented_manual_wrap_short():
-    wrapped = ('a a\n'
-               '\n'
-               '* b b\n'
-               'b\n'
-               '    * B\n'
-               '      B\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '* b b b\n'
-               '    * B\n'
-               '      B\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=5)
-
-
-def test_bullet_indented_manual_wrap_long():
-    # Three lines instead of the two in the preceding case.
-    wrapped = ('a a\n'
-               '\n'
-               '* b b\n'
-               'b\n'
-               '    * B\n'
-               '      B\n'
-               '      B\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '* b b b\n'
-               '    * B\n'
-               '      B\n'
-               '      B\n'
-               '* b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=5)
-
-
-def test_bullet_deeply_indented():
-    # Again, intended items are ignored.
-    wrapped = ('a a\n'
-               '\n'
-               '* b b b b b b\n'
-               'b b b b b b b\n'
-               '* b\n'
-               '    * B B\n'
-               '      B\n'
-               '        * bb\n'
-               '          bb\n'
-               '    * B B B B B\n'
-               '        * bb bb bb\n'
-               '        * bb\n'
-               '            * BB\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '* b b b b b b b b b b b b b\n'
-               '* b\n'
-               '    * B B\n'
-               '      B\n'
-               '        * bb\n'
-               '          bb\n'
-               '    * B B B B B\n'
-               '        * bb bb bb\n'
-               '        * bb\n'
-               '            * BB\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=13)
 
 
 def test_numbered_list_trivial():
