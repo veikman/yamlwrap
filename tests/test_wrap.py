@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Unit tests for yamlwrap.
 
+Some of these test cases originated when yamlwrap was pure Python. These now
+serve mainly as characterization tests for the punwrap/runwrap upstream.
+
 Author: Viktor Eikman <viktor.eikman@gmail.com>
 
 -------
@@ -149,63 +152,10 @@ def test_numbered_list_trivial():
     _rewrap(wrapped, wrapped, width=4)
 
 
-def test_numbered_list_width():
-    # At default width for this unit test, break even the simplest
-    # possible numbered list.
-    wrapped = ('a a\n\n1.\nb\n\nc c')
-    no_wrap = ('a a\n\n1. b\n\nc c')
-    _rewrap(wrapped, no_wrap)
-
-
 def test_numbered_list_2digit():
     # Like the trivial case but with a two-digit line number.
     wrapped = ('a a\n\n29. b\n\nc c')
     _rewrap(wrapped, wrapped, width=5)
-
-
-def test_numbered_list_single_line():
-    wrapped = ('a a\n\n1. b\nb\n\nc c')
-    no_wrap = ('a a\n\n1. b b\n\nc c')
-    _rewrap(wrapped, no_wrap, width=5)
-
-
-def test_numbered_list_unindented_starting_long():
-    wrapped = ('a a\n'
-               '\n'
-               '2. b b\n'
-               'b\n'
-               '3. b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '2. b b b\n'
-               '3. b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=6)
-
-
-@mark.xfail
-def test_numbered_list_unindented_starting_short():
-    wrapped = ('a a\n'
-               '\n'
-               '2. b\n'
-               '3. b b\n'
-               'b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '2. b\n'
-               '3. b b b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=6)
-
-    # NOTE: As of 2020-08, the last wrap on item 3 is identified as
-    # purposeful and is not undone. This is arguably bad behaviour;
-    # see below for the supported workaround.
 
 
 def test_numbered_list_indented_starting_long():
@@ -236,28 +186,7 @@ def test_numbered_list_indented_starting_short():
     _rewrap(wrapped, wrapped, width=60)
 
 
-def test_numbered_list_indented():
-    # Here, the indented line is not broken up.
-    # Nested lists currently require manual wrapping.
-    wrapped = ('a a\n'
-               '\n'
-               '2. b b b b\n'
-               'b\n'
-               '    1. B B B\n'
-               '3. b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '2. b b b b b\n'
-               '    1. B B B\n'
-               '3. b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=10)
-
-
-def test_mixed_list():
+def test_mixed_list_singleparagraphs():
     wrapped = ('a a\n'
                '\n'
                '3. b b\n'
@@ -268,61 +197,8 @@ def test_mixed_list():
                '    * B\n'
                '\n'
                'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '3. b b\n'
-               '   b\n'
-               '2. b\n'
-               '   b\n'
-               '    * B B\n'
-               '    * B\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=7)
-
-
-def test_quote_block_oneparagraph():
-    wrapped = ('a a\n\n> b\nb\n\nc c')
-    no_wrap = ('a a\n\n> b b\n\nc c')
-    _rewrap(wrapped, no_wrap)
-
-
-def test_quote_block_multiparagraph_starting_long():
-    wrapped = ('a a\n'
-               '\n'
-               '> b b\n'
-               'b\n'
-               '>\n'
-               '> b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '> b b b\n'
-               '>\n'
-               '> b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=5)
-
-
-def test_quote_block_multiparagraph_starting_short():
-    wrapped = ('a a\n'
-               '\n'
-               '> b b\n'
-               '>\n'
-               '> b b\n'
-               'b\n'
-               '\n'
-               'c c\n')
-    no_wrap = ('a a\n'
-               '\n'
-               '> b b\n'
-               '>\n'
-               '> b b b\n'
-               '\n'
-               'c c\n')
-    _rewrap(wrapped, no_wrap, width=5)
+    _rewrap(wrapped, wrapped, width=6)
+    _rewrap(wrapped, wrapped, width=60)
 
 
 def test_markup():
