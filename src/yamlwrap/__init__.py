@@ -52,6 +52,10 @@ _NONPRINTABLE = re.compile(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-'
                            r'\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]')
 
 
+WIDTH_DEFAULT = 70
+WIDTH_DUMP = 160
+
+
 ###########
 # OBJECTS #
 ###########
@@ -98,7 +102,7 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False,
     """
     data = load(raw)
 
-    dump_args = dict(width=160)
+    dump_args = dict(width=WIDTH_DUMP)
     if unwrap and not wrap:
         dump_args['string_val_style'] = '|'
 
@@ -154,7 +158,7 @@ def unwrap(string: str) -> str:
     return punwrap.unwrap(string)
 
 
-def wrap(string: str, width=70) -> str:
+def wrap(string: str, width=WIDTH_DEFAULT) -> str:
     """Wrap lines of text on a paragraph level in subject string.
 
     Words longer than pyaml's heuristic threshold will cause
@@ -164,7 +168,7 @@ def wrap(string: str, width=70) -> str:
     return punwrap.wrap(string, width)
 
 
-def rewrap(string: str, width=70):
+def rewrap(string: str, width=WIDTH_DEFAULT):
     """Rewrap lines of text on a paragraph level in subject string."""
     return punwrap.rewrap(string, width)
 
