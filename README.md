@@ -34,8 +34,8 @@ version](example/a3_rewrapped.yaml) for VCS.
 ## History
 
 `yamlwrap` was originally part of `django-yamldoc`, when that project was
-called `vedm`. It became its own module in 2021. Later that year, internal
-logic based on Python regexes was stripped out in favour of `punwrap`,
+called `vedm`. It became its own module (v1.0.0) in 2021. Later that year,
+internal logic based on Python regexes was stripped out in favour of `punwrap`,
 resulting in a more narrow focus (Markdown instead of arbitrary markup) and
 substantial behavioural changes (v2.0.0).
 
