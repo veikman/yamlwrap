@@ -78,6 +78,7 @@ def test_4byte_unicode():
     s = '🙄'
     ref = '🙄\n...\n'
     assert ref == dump_file(s)
+    assert load_string(ref) == s
 
 
 def test_4byte_unicode_with_pipe():
@@ -102,3 +103,4 @@ def test_4byte_unicode_with_pipe():
     s = '🧐\na'
     ref = '|-\n  🧐\n  a\n'
     assert ref == dump_file(s)
+    assert load_string(ref) == s
