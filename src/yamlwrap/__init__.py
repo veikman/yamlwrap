@@ -44,7 +44,7 @@ import yaml  # PyPI: PyYAML.
 #############
 
 
-__version__ = '2.0.1-SNAPSHOT'
+__version__ = '2.1.0-SNAPSHOT'
 
 
 # Unicode space ranges.
@@ -88,6 +88,7 @@ def load(data: str) -> str:
 
 
 def transform(raw: str, twopass=True, unwrap=False, wrap=False,
+              loader=load, dumper=dump,
               lint_fn: Optional[Callable[[str], None]] = None,
               map_fn=lambda x: x, postdescent_fn=lambda x: x) -> Optional[str]:
     """Modify a serialized YAML string if needed.
@@ -99,8 +100,13 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False,
     serialized data. Not all options for lower-level functions conditionally
     called from here are exposed.
 
+    The default loader and dumper used here are intended for backwards
+    compatibility and are expected to change in a future major version of
+    yamlwrap. They are parametrized in the function signature to allow for the
+    use of e.g. yaml.load_all, closing over sort_keys=False, etc.
+
     """
-    data = load(raw)
+    data = loader(raw)
 
     dump_args = dict(width=WIDTH_DUMP)
     if unwrap and not wrap:
@@ -128,7 +134,7 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False,
 
     postdescent_fn(data)
 
-    cooked = dump(data, **dump_args)
+    cooked = dumper(data, **dump_args)
 
     if raw == cooked:
         # File mtime is used as default time of last mod in some apps.
