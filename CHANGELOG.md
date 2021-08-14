@@ -5,6 +5,11 @@ This log follows the conventions of
 ## [Unreleased]
 Nothing yet.
 
+### Changed
+- Implemented `dump`, previously a placeholder. It’s still basically
+  `pyaml.dump` but now disables `sort_dicts` so that `map_fn` etc. can
+  be meaningful with modern Python, without using `OrderedDict`.
+
 ### Added
 - New keyword arguments to transform: `loader` and `dumper`.
   Behaviour can now be customized for e.g. multi-document files.

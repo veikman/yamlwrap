@@ -69,12 +69,17 @@ log = getLogger('yamlwrap')
 #######################
 
 
-# Round out the yamlwrap API by exposing pyaml.dump as an interface.
-# This could become a wrapper in a future version of yamlwrap.
-dump = pyaml.dump
+def dump(data) -> str:
+    """Serialize passed data structure as YAML.
+
+    The main job of this function is to preserve the order of mappings for
+    readability.
+
+    """
+    return pyaml.dump(data, sort_dicts=False)
 
 
-def load(data: str) -> str:
+def load(data: str):
     """Parse passed string as YAML.
 
     The main job of this function is to work around the lack of support for
