@@ -31,6 +31,11 @@ hand-made original](example/a0_original.yaml) and made [this unwrapped
 version](example/a2_unwrapped.yaml) as well as [this rewrapped
 version](example/a3_rewrapped.yaml) for VCS.
 
+## Development
+
+This project is managed using PyInvoke. Run `inv -l` for a list of common
+tasks.
+
 ## History
 
 `yamlwrap` was originally part of `django-yamldoc`, when that project was
@@ -38,6 +43,8 @@ called `vedm`. It became its own module (v1.0.0) in 2021. Later that year,
 internal logic based on Python regexes was stripped out in favour of `punwrap`,
 resulting in a more narrow focus (Markdown instead of arbitrary markup) and
 substantial behavioural changes (v2.0.0).
+
+Later changes are described in the [change log](CHANGELOG.md).
 
 ## Legal
 
