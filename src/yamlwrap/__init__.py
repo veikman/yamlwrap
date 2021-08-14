@@ -33,7 +33,7 @@ import collections
 import difflib
 import re
 from logging import getLogger
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import punwrap
 import pyaml
@@ -69,14 +69,14 @@ log = getLogger('yamlwrap')
 #######################
 
 
-def dump(data) -> str:
+def dump(data, sort_dicts=False, width=WIDTH_DUMP, **kwargs) -> str:
     """Serialize passed data structure as YAML.
 
     The main job of this function is to preserve the order of mappings for
     readability.
 
     """
-    return pyaml.dump(data, sort_dicts=False)
+    return pyaml.dump(data, sort_dicts=sort_dicts, width=width, **kwargs)
 
 
 def load(data: str):
@@ -113,7 +113,7 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False,
     """
     data = loader(raw)
 
-    dump_args = dict(width=WIDTH_DUMP)
+    dump_args: Dict[str, Union[int, str, bool]] = {}
     if unwrap and not wrap:
         dump_args['string_val_style'] = '|'
 
@@ -131,7 +131,7 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False,
 
     if lint_fn is not None:
         def lint(r: str) -> str:
-            lint_fn(r)
+            lint_fn(r)  # type: ignore[misc]
             return r
         string_fns.append(lint)
 
