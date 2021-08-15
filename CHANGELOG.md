@@ -5,6 +5,7 @@ This log follows the conventions of
 ## [Unreleased]
 Nothing yet.
 
+## [Version 2.1.0]
 ### Changed
 - Implemented `dump`, previously a placeholder. It’s still basically
   `pyaml.dump` but now disables `sort_dicts` so that `map_fn` etc. can more
@@ -14,4 +15,5 @@ Nothing yet.
 - New keyword arguments to transform: `loader` and `dumper`.
   This was done so that behaviour can be customized for multi-document files.
 
-[Unreleased]: https://github.com/veikman/yamlwrap/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/veikman/yamlwrap/compare/v2.1.0...HEAD
+[Version 2.1.0]: https://github.com/veikman/yamlwrap/compare/v2.0.0...v2.1.0
