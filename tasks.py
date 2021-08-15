@@ -6,6 +6,7 @@ http://www.pyinvoke.org/
 
 from invoke import task
 
+
 @task()
 def examples(c):
     """Compose bundled example YAML files."""
