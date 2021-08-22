@@ -1,21 +1,21 @@
-# `yamlwrap`: VCS-friendly documents in YAML
-
-This is a Python module for maintaining arbitrarily long Markdown documents in
-YAML mappings, under version control and subject to other text-based tools.
-
-`yamlwrap` serves this purpose by adding YAML support to
-`[punwrap](https://github.com/veikman/punwrap)`, a Rust extension for wrapping
-Markdown.
+`yamlwrap` is a Python module for keeping content ready for the web while
+under effective version control.
 
 ## Audience
 
-`yamlwrap` is for people who maintain the contents of statically built web
-sites as YAML and prefer off-line text editors over SQL and plutonian web-based
-administrative interfaces. It won’t do much good for configuration files.
+Do you use YAML just for configuration files? Then you don’t need `yamlwrap`.
+
+Do you maintain a statically built web site? Do you want to keep even long
+documents with complex internal markup in plain-text files, but always ready
+for the ORM? Do you want automatic rewrapping (reflowing) of text for short
+lines and neat Git diffs? Do you want to use YAML everywhere, for quick,
+unambiguous, syntax-checked conversion to JSON or SQL for publication? Then
+`yamlwrap` is for you. Stop using plutonian web-based administrative
+interfaces. Use `yamlwrap` and your favourite text editor.
 
 ## Usage
 
-This is primarily a function library. Its main interface is
+This project is primarily a function library. Its main interface is
 `yamlwrap.transform`, which takes and returns serialized YAML, along with
 keyword parameters for how to change that YAML. `yamlwrap.unwrap`, which takes
 a block of text as one string, is a suitable preprocessor for
@@ -38,11 +38,13 @@ tasks.
 
 ## History
 
-`yamlwrap` was originally part of `django-yamldoc`, when that project was
-called `vedm`. It became its own module (v1.0.0) in 2021. Later that year,
-internal logic based on Python regexes was stripped out in favour of `punwrap`,
-resulting in a more narrow focus (Markdown instead of arbitrary markup) and
-substantial behavioural changes (v2.0.0).
+`yamlwrap` was originally part of
+[`django-yamldoc`](https://github.com/veikman/django-yamldoc), when that
+project was called `vedm`. It became its own module (v1.0.0) in 2021. Later
+that year, internal logic based on Python regexes was stripped out in favour of
+[`punwrap`](https://github.com/veikman/punwrap), resulting in a more narrow
+focus (Markdown instead of arbitrary markup) and substantial behavioural
+changes (v2.0.0).
 
 Later changes are described in the [change log](CHANGELOG.md).
 
