@@ -1,6 +1,8 @@
 `yamlwrap` is a Python module for keeping content ready for the web while
 under effective version control.
 
+[![PyPI version](https://badge.fury.io/py/yamlwrap.svg)](https://badge.fury.io/py/yamlwrap)
+
 ## Audience
 
 Do you use YAML just for configuration files? Then you don’t need `yamlwrap`.
