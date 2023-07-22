@@ -48,8 +48,10 @@ __version__ = '2.2.0-SNAPSHOT'
 
 
 # Unicode space ranges.
-_NONPRINTABLE = re.compile(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-'
-                           r'\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]')
+_NONPRINTABLE = re.compile(
+    r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-'
+    r'\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
+)
 
 
 WIDTH_DEFAULT = 70
@@ -92,10 +94,17 @@ def load(data: str):
     return yaml.safe_load(data)
 
 
-def transform(raw: str, twopass=True, unwrap=False, wrap=False,
-              loader=load, dumper=dump,
-              lint_fn: Optional[Callable[[str], None]] = None,
-              map_fn=lambda x: x, postdescent_fn=lambda x: x) -> Optional[str]:
+def transform(
+    raw: str,
+    twopass=True,
+    unwrap=False,
+    wrap=False,
+    loader=load,
+    dumper=dump,
+    lint_fn: Optional[Callable[[str], None]] = None,
+    map_fn=lambda x: x,
+    postdescent_fn=lambda x: x,
+) -> Optional[str]:
     """Modify a serialized YAML string if needed.
 
     Return a string if changes are suggested, else return None.
@@ -130,9 +139,11 @@ def transform(raw: str, twopass=True, unwrap=False, wrap=False,
             string_fns.append(_wrap)
 
     if lint_fn is not None:
+
         def lint(r: str) -> str:
             lint_fn(r)  # type: ignore[misc]
             return r
+
         string_fns.append(lint)
 
     _descend(data, map_fn, string_fns)
@@ -199,8 +210,9 @@ _wrap = wrap
 
 def _is_listlike(object_: Any) -> bool:
     """Return True if object_ is an iterable container."""
-    if (isinstance(object_, collections.abc.Iterable) and
-            not isinstance(object_, str)):
+    if isinstance(object_, collections.abc.Iterable) and not isinstance(
+        object_, str
+    ):
         return True
     return False
 

@@ -23,7 +23,6 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
 from pytest import mark
-
 from yamlwrap import dump as dump_file
 from yamlwrap import load as load_string
 from yamlwrap import rewrap, unwrap, wrap
@@ -55,10 +54,10 @@ def test_softbreak():
     consequences for pyaml string styles.
 
     """
-    dirty = 'aa  \naa'      # Markdown soft break.
+    dirty = 'aa  \naa'  # Markdown soft break.
     degenerate = 'aa   aa'  # Unwapping preserves the soft break’s spaces.
-    clean = 'aa\naa'        # Wrapping destroys all trailing space.
-    flat = 'aa aa'          # Soft break destroyed in a round trip.
+    clean = 'aa\naa'  # Wrapping destroys all trailing space.
+    flat = 'aa aa'  # Soft break destroyed in a round trip.
 
     assert unwrap(dirty) == degenerate
     assert wrap(dirty) == clean
@@ -103,71 +102,74 @@ def test_block_html_minimal():
 
 
 @mark.parametrize(
-    "text,width",
+    'text,width',
     [
-     ('<table>\n\n'
-      '  <tr>\n\n'
-      '    <td>The only\ndata</td>\n\n'
-      '  </tr>\n\n'
-      '</table>', 15),
-     ('<table>\n'
-      '  <tr>\n'
-      '    <td>The only data</td>\n'
-      '  </tr>\n'
-      '</table>\n', 15),
-     ('a a\n\n* b\n\nc c', 3),
-     ('a a\n\n* b\nb\n\nc c', 3),
-     ('a a\n\n* b b\n\nc c', 3),
-     ('a a\n\n* b b\nb\n* b\n\nc c\n', 5),
-     ('a a\n\n* b b\nb\n    * B\n* b\n\nc c\n', 5),
-     # As in runwrap, only multi-paragraph list items are treated.
-     ('a a\n'
-      '\n'
-      '* b b b b b b b b b b b b b\n'
-      '* b\n'
-      '    * B B\n'
-      '      B\n'
-      '        * bb\n'
-      '          bb\n'
-      '    * B B B B B\n'
-      '        * bb bb bb\n'
-      '        * bb\n'
-      '            * BB\n'
-      '\n'
-      'c c\n', 10)
-    ]
+        (
+            '<table>\n\n'
+            '  <tr>\n\n'
+            '    <td>The only\ndata</td>\n\n'
+            '  </tr>\n\n'
+            '</table>',
+            15,
+        ),
+        (
+            '<table>\n'
+            '  <tr>\n'
+            '    <td>The only data</td>\n'
+            '  </tr>\n'
+            '</table>\n',
+            15,
+        ),
+        ('a a\n\n* b\n\nc c', 3),
+        ('a a\n\n* b\nb\n\nc c', 3),
+        ('a a\n\n* b b\n\nc c', 3),
+        ('a a\n\n* b b\nb\n* b\n\nc c\n', 5),
+        ('a a\n\n* b b\nb\n    * B\n* b\n\nc c\n', 5),
+        # As in runwrap, only multi-paragraph list items are treated.
+        (
+            'a a\n'
+            '\n'
+            '* b b b b b b b b b b b b b\n'
+            '* b\n'
+            '    * B B\n'
+            '      B\n'
+            '        * bb\n'
+            '          bb\n'
+            '    * B B B B B\n'
+            '        * bb bb bb\n'
+            '        * bb\n'
+            '            * BB\n'
+            '\n'
+            'c c\n',
+            10,
+        ),
+    ],
 )
 def test_idempotent(text, width):
     _rewrap(text, text, width=width)
 
 
 def test_inline_html():
-    wrapped = ('a a a a a\n<b>a a</b>\na a a a a')
-    no_wrap = ('a a a a a <b>a a</b> a a a a a')
+    wrapped = 'a a a a a\n<b>a a</b>\na a a a a'
+    no_wrap = 'a a a a a <b>a a</b> a a a a a'
     _rewrap(wrapped, no_wrap, width=10)
 
 
 def test_numbered_list_trivial():
-    wrapped = ('a a\n\n1. b\n\nc c')
+    wrapped = 'a a\n\n1. b\n\nc c'
     _rewrap(wrapped, wrapped, width=4)
 
 
 def test_numbered_list_2digit():
     # Like the trivial case but with a two-digit line number.
-    wrapped = ('a a\n\n29. b\n\nc c')
+    wrapped = 'a a\n\n29. b\n\nc c'
     _rewrap(wrapped, wrapped, width=5)
 
 
 def test_numbered_list_indented_starting_long():
     # An indented trailing line as part of the first bullet point should
     # not be affected.
-    wrapped = ('a a\n'
-               '\n'
-               '2. b b\n'
-               '   b\n'
-               '3. b\n'
-               '\n'
-               'c c\n')
+    wrapped = 'a a\n' '\n' '2. b b\n' '   b\n' '3. b\n' '\n' 'c c\n'
     _rewrap(wrapped, wrapped, width=6)
     _rewrap(wrapped, wrapped, width=60)
 
@@ -175,42 +177,38 @@ def test_numbered_list_indented_starting_long():
 def test_numbered_list_indented_starting_short():
     # This is the workaround for the expected failure in
     # test_numbered_list_unindented_starting_short.
-    wrapped = ('a a\n'
-               '\n'
-               '2. b\n'
-               '3. b b\n'
-               '   b\n'
-               '\n'
-               'c c\n')
+    wrapped = 'a a\n' '\n' '2. b\n' '3. b b\n' '   b\n' '\n' 'c c\n'
     _rewrap(wrapped, wrapped, width=6)
     _rewrap(wrapped, wrapped, width=60)
 
 
 def test_mixed_list_singleparagraphs():
-    wrapped = ('a a\n'
-               '\n'
-               '3. b b\n'
-               '   b\n'
-               '2. b\n'
-               '   b\n'
-               '    * B B\n'
-               '    * B\n'
-               '\n'
-               'c c\n')
+    wrapped = (
+        'a a\n'
+        '\n'
+        '3. b b\n'
+        '   b\n'
+        '2. b\n'
+        '   b\n'
+        '    * B B\n'
+        '    * B\n'
+        '\n'
+        'c c\n'
+    )
     _rewrap(wrapped, wrapped, width=6)
     _rewrap(wrapped, wrapped, width=60)
 
 
 def test_markup():
-    wrapped = ('{{mark|Aa a|param=Bb\nb}}\n\nCc c.')
-    no_wrap = ('{{mark|Aa a|param=Bb b}}\n\nCc c.')
+    wrapped = '{{mark|Aa a|param=Bb\nb}}\n\nCc c.'
+    no_wrap = '{{mark|Aa a|param=Bb b}}\n\nCc c.'
     _rewrap(wrapped, no_wrap, width=20)
 
 
 def test_asymmetric_single_space_leading_line():
     dirty = 'aa\n aa'  # Leading space.
-    clean = 'aa\naa'   # Leading space destroyed.
-    flat = 'aa aa'     # Line break destroyed (not space-constrained).
+    clean = 'aa\naa'  # Leading space destroyed.
+    flat = 'aa aa'  # Line break destroyed (not space-constrained).
 
     assert unwrap(dirty) == flat
     assert wrap(dirty) == dirty
@@ -219,10 +217,10 @@ def test_asymmetric_single_space_leading_line():
 
 
 def test_asymmetric_single_space_terminating_line():
-    dirty = 'aa \naa'       # Trailing space.
-    degenerate = 'aa  aa'   # Straight wrap preserves trailing space.
-    clean = 'aa\naa'        # Trailing space destroyed.
-    flat = 'aa aa'          # Line break destroyed (not space-constrained).
+    dirty = 'aa \naa'  # Trailing space.
+    degenerate = 'aa  aa'  # Straight wrap preserves trailing space.
+    clean = 'aa\naa'  # Trailing space destroyed.
+    flat = 'aa aa'  # Line break destroyed (not space-constrained).
 
     assert unwrap(dirty) == degenerate
     assert wrap(dirty) == clean
@@ -265,14 +263,18 @@ def _round_trip(init, ref_final, ref_loaded, ref_reserialized):
 
 
 def test_middle():
-    _round_trip('key: |-\n  alpha \n  beta\n',
-                'key: |-\n  alpha\n  beta\n',
-                {'key': 'alpha \nbeta'},
-                'key: "alpha \\nbeta"\n')
+    _round_trip(
+        'key: |-\n  alpha \n  beta\n',
+        'key: |-\n  alpha\n  beta\n',
+        {'key': 'alpha \nbeta'},
+        'key: "alpha \\nbeta"\n',
+    )
 
 
 def test_end():
-    _round_trip('key: |-\n  alpha\n  beta \n',
-                'key: |-\n  alpha\n  beta\n',
-                {'key': 'alpha\nbeta '},
-                'key: "alpha\\nbeta "\n')
+    _round_trip(
+        'key: |-\n  alpha\n  beta \n',
+        'key: |-\n  alpha\n  beta\n',
+        {'key': 'alpha\nbeta '},
+        'key: "alpha\\nbeta "\n',
+    )
