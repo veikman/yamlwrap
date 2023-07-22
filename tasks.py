@@ -8,6 +8,12 @@ from invoke import task
 
 
 @task()
+def format(c):
+    """Reformat Python files."""
+    c.run('black .')
+
+
+@task()
 def examples(c):
     """Compose bundled example YAML files."""
     c.run('make example/a{1,2,3}_*.yaml')
