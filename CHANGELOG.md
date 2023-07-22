@@ -5,7 +5,7 @@ This log follows the conventions of
 ## [Unreleased]
 Nothing yet.
 
-## [Version 2.1.0]
+## [Version 2.1.0] – 2021-08-15
 ### Changed
 - Implemented `dump`, previously a placeholder. It’s still basically
   `pyaml.dump` but now disables `sort_dicts` so that `map_fn` etc. can more
