@@ -19,7 +19,9 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 """
 
-from pytest import raises
+from datetime import date
+
+from pytest import mark, raises
 from yaml.parser import ParserError
 from yamlwrap import dump as dump_file
 from yamlwrap import load as load_string
@@ -67,17 +69,25 @@ def test_loading_block_without_consistent_indentation():
         load_string(data)
 
 
-def test_4byte_unicode():
-    """Check that a 4-byte Unicode character isn’t encoded in hex.
-
-    pyaml should take care of this automatically, whereas PyYAML will not
-    do so by default.
-
-    """
-    s = '🙄'
-    ref = '🙄\n'
-    assert ref == dump_file(s)
-    assert load_string(ref) == s
+@mark.parametrize(
+    '_, in_, out_',
+    (
+        ['date', date(2021, 8, 15), '2021-08-15\n'],
+        ['datelike_string', '2021-08-15', "'2021-08-15'\n"],
+        ['quoted_datelike_string', '"2021-08-15"', """'"2021-08-15"'\n"""],
+        [
+            '4byte_unicode',
+            # Check that a 4-byte Unicode character isn’t encoded in hex. pyaml
+            # should take care of this automatically, whereas PyYAML will not
+            # do so by default.
+            '🙄',
+            '🙄\n',
+        ],
+    ),
+)
+def test_round_trip(_, in_, out_):
+    assert out_ == dump_file(in_)
+    assert load_string(out_) == in_
 
 
 def test_4byte_unicode_with_pipe():
