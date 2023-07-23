@@ -238,7 +238,26 @@ def test_asymmetric_dirty_multiline():
     assert re_wrap == actual
 
 
-def _round_trip(init, ref_final, ref_loaded, ref_reserialized):
+@mark.parametrize(
+    '_, init, ref_final, ref_loaded, ref_reserialized',
+    (
+        [
+            'middle',
+            'key: |-\n  alpha \n  beta\n',
+            'key: |-\n  alpha\n  beta\n',
+            {'key': 'alpha \nbeta'},
+            'key: "alpha \\nbeta"\n',
+        ],
+        [
+            'end',
+            'key: |-\n  alpha\n  beta \n',
+            'key: |-\n  alpha\n  beta\n',
+            {'key': 'alpha\nbeta '},
+            'key: "alpha\\nbeta "\n',
+        ],
+    ),
+)
+def test_round_trip(_, init, ref_final, ref_loaded, ref_reserialized):
     """Check how rewrapping a single trailing space affects serialization.
 
     Once unwrapped and rewrapped, a string containing a single space before a
@@ -260,21 +279,3 @@ def _round_trip(init, ref_final, ref_loaded, ref_reserialized):
     rewrapped = wrap(unwrap(initial_value), 8)
     recomposed = dict(key=rewrapped)
     assert dump_file(recomposed) == ref_final
-
-
-def test_middle():
-    _round_trip(
-        'key: |-\n  alpha \n  beta\n',
-        'key: |-\n  alpha\n  beta\n',
-        {'key': 'alpha \nbeta'},
-        'key: "alpha \\nbeta"\n',
-    )
-
-
-def test_end():
-    _round_trip(
-        'key: |-\n  alpha\n  beta \n',
-        'key: |-\n  alpha\n  beta\n',
-        {'key': 'alpha\nbeta '},
-        'key: "alpha\\nbeta "\n',
-    )
