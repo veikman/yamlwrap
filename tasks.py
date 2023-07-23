@@ -38,7 +38,7 @@ def build(c):
 def test(c):
     """Build, install, and then run unit tests."""
     with c.cd('dist'):
-        c.run('sudo pip install --force-reinstall *.whl')
+        c.run('pipenv run pip install --force-reinstall *.whl')
     c.run('pytest')
 
 
