@@ -71,14 +71,14 @@ log = getLogger('yamlwrap')
 #######################
 
 
-def dump(data, sort_dicts=False, width=WIDTH_DUMP, **kwargs) -> str:
+def dump(data, sort_keys=False, width=WIDTH_DUMP, **kwargs) -> str:
     """Serialize passed data structure as YAML.
 
     The main job of this function is to preserve the order of mappings for
     readability.
 
     """
-    return pyaml.dump(data, sort_dicts=sort_dicts, width=width, **kwargs)
+    return pyaml.dump(data, sort_keys=sort_keys, width=width, **kwargs)
 
 
 def load(data: str):
