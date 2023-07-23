@@ -22,6 +22,8 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 """
 
+from datetime import date
+
 from pytest import mark
 from yamlwrap import dump as dump_file
 from yamlwrap import load as load_string
@@ -255,17 +257,29 @@ def test_asymmetric_dirty_multiline():
             {'key': 'alpha\nbeta '},
             'key: "alpha\\nbeta "\n',
         ],
+        [
+            'date',
+            # This test case doesn’t really concern wrapping.
+            # Instead, it’s about the data type of the key.
+            '2021-08-15: skub',
+            '2021-08-15: skub\n',
+            {date(2021, 8, 15): 'skub'},
+            '2021-08-15: skub\n',
+        ],
     ),
 )
 def test_round_trip(_, init, ref_final, ref_loaded, ref_reserialized):
-    """Check how rewrapping a single trailing space affects serialization.
+    """Check round-tripping loading and dumping.
 
-    Once unwrapped and rewrapped, a string containing a single space before a
-    newline should lose it, and this in turn should cause pyaml.dump to pick a
-    string style that works well for long human-editable text.
+    If the string 'key' is used in the data, check how rewrapping a single
+    trailing space affects serialization. Once unwrapped and rewrapped, a
+    string containing a single space before a newline should lose it, and this
+    in turn should cause pyaml.dump to pick a string style that works well for
+    long human-editable text.
 
-    This is a feature: It’s supposed to prevent disastrous reformatting
-    over an errant space character that has no significance in e.g. Markdown.
+    Losing that final space is a feature: It’s supposed to prevent disastrous
+    reformatting over an errant space character that has no significance in
+    e.g. Markdown.
 
     Extraneous leading spaces are not covered because the YAML parser treats
     them as inconsistent indentation, raising a ParserError (tested above).
@@ -274,8 +288,12 @@ def test_round_trip(_, init, ref_final, ref_loaded, ref_reserialized):
     loaded = load_string(init)
     assert loaded == ref_loaded
     assert dump_file(loaded) == ref_reserialized
-    initial_value = loaded['key']
-    # Rewrap at a width sufficient for one word only.
-    rewrapped = wrap(unwrap(initial_value), 8)
-    recomposed = dict(key=rewrapped)
+
+    recomposed = ref_loaded
+    if 'key' in ref_loaded:
+        initial_value = loaded['key']
+        # Rewrap at a width sufficient for one word only.
+        rewrapped = wrap(unwrap(initial_value), 8)
+        recomposed = dict(key=rewrapped)
+
     assert dump_file(recomposed) == ref_final
