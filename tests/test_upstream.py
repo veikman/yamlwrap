@@ -21,7 +21,6 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 from pytest import raises
 from yaml.parser import ParserError
-
 from yamlwrap import dump as dump_file
 from yamlwrap import load as load_string
 
@@ -76,7 +75,7 @@ def test_4byte_unicode():
 
     """
     s = '🙄'
-    ref = '🙄\n...\n'
+    ref = '🙄\n'
     assert ref == dump_file(s)
     assert load_string(ref) == s
 
