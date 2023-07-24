@@ -12,12 +12,14 @@ documents with complex internal markup in plain-text files, but always ready
 for the ORM? Do you want automatic rewrapping (reflowing) of text for short
 lines and neat Git diffs? Do you want to use YAML everywhere, for quick,
 unambiguous, syntax-checked conversion to JSON or SQL for publication? Then
-`yamlwrap` is for you. Stop using plutonian web-based administrative
-interfaces. Use `yamlwrap` and your favourite text editor.
+`yamlwrap` is for you.
+
+Stop using plutonian web-based administrative interfaces. Use `yamlwrap` and
+your favourite text editor.
 
 ## Usage
 
-This project is primarily a function library. Its main interface is
+This project is primarily a function library. Its highest-level interface is
 `yamlwrap.transform`, which takes and returns serialized YAML, along with
 keyword parameters for how to change that YAML. `yamlwrap.unwrap`, which takes
 a block of text as one string, is a suitable preprocessor for
@@ -52,6 +54,6 @@ Later changes are described in the [change log](CHANGELOG.md).
 
 ## Legal
 
-Copyright 2016–2021 Viktor Eikman
+Copyright 2016–2023 Viktor Eikman
 
 `yamlwrap` is licensed as detailed in the accompanying file LICENSE.
