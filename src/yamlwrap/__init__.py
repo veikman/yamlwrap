@@ -44,7 +44,7 @@ import yaml  # PyPI: PyYAML.
 #############
 
 
-__version__ = '2.2.0-a'
+__version__ = '2.1.1'
 
 
 # Unicode space ranges.

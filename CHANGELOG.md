@@ -3,6 +3,9 @@ This log follows the conventions of
 [keepachangelog.com](http://keepachangelog.com/). It picks up from version 2.0.0.
 
 ## [Unreleased]
+Nothing yet.
+
+## [Version 2.1.1] – 2023-07-24
 ### Fixed
 - Replaced the `sort_dicts` keyword to `pyaml`, which has been deprecated
   upstream, with `sort_keys`.
@@ -17,5 +20,6 @@ This log follows the conventions of
 - New keyword arguments to transform: `loader` and `dumper`.
   This was done so that behaviour can be customized for multi-document files.
 
-[Unreleased]: https://github.com/veikman/yamlwrap/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/veikman/yamlwrap/compare/v2.1.1...HEAD
+[Version 2.1.1]: https://github.com/veikman/yamlwrap/compare/v2.1.0...v2.1.1
 [Version 2.1.0]: https://github.com/veikman/yamlwrap/compare/v2.0.0...v2.1.0
